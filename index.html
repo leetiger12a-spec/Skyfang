@@ -7,6 +7,16 @@
 <title>SKYFANG</title>
 <link rel="icon" type="image/png" href="ico/favicon.png">
 <link rel="apple-touch-icon" href="ico/apple-touch-icon.jpg">
+<meta name="description" content="1942 스타일 세로 스크롤 슈팅 게임. 설치 없이 폰 브라우저에서 바로 플레이, 친구와 2인·온라인 협동.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SKYFANG">
+<meta property="og:title" content="SKYFANG - 하늘의 송곳니">
+<meta property="og:description" content="1942 스타일 세로 스크롤 슈팅 게임. 설치 없이 바로 플레이, 친구와 협동 출격!">
+<meta property="og:url" content="https://leetiger12a-spec.github.io/Skyfang/">
+<meta property="og:image" content="https://leetiger12a-spec.github.io/Skyfang/ill/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Bungee&family=Gowun+Dodum&display=swap" rel="stylesheet">
@@ -212,6 +222,8 @@ button:focus-visible{ outline:3px solid #F2A541; outline-offset:3px; }
 .lvopt span{font-size:3.1cqw;line-height:1.3;}
 #bombBtn.empty{ opacity:.35; background:#8A90A0; }
 @media (prefers-reduced-motion: reduce){ .primary{ transition:none; } }
+#bkBox{ width:100%; display:grid; gap:1.2cqh; }
+#bkBox textarea{ width:100%; box-sizing:border-box; font:3.2cqw/1.4 ui-monospace,monospace; padding:1.5cqw; border-radius:2cqw; border:2px solid rgba(255,255,255,.35); background:rgba(6,24,34,.55); color:#F4F1E4; resize:none; word-break:break-all; }
 </style>
 </head>
 <body>
@@ -261,6 +273,9 @@ button:focus-visible{ outline:3px solid #F2A541; outline-offset:3px; }
       <div class="vols"><label>음악<input type="range" id="volM" min="0" max="100" step="5"></label><label>효과음<input type="range" id="volS" min="0" max="100" step="5"></label></div>
       <div class="row"><button id="musicBtn" class="ghost">음악 켜짐</button><button id="muteBtn" class="ghost">효과음 켜짐</button><button id="vibBtn" class="ghost">진동 켜짐</button><button id="testBtn" class="ghost">소리 테스트</button></div>
       <p id="audioStat0" class="astat"></p>
+      <div class="row"><button id="bkBtn" class="ghost">기록 백업</button><button id="rsBtn" class="ghost">기록 불러오기</button></div>
+      <div id="bkBox" class="hidden"><p id="bkMsg" class="astat"></p><textarea id="bkCode" rows="4" spellcheck="false" autocomplete="off"></textarea>
+        <div class="row"><button id="bkCopy" class="ghost">복사</button><button id="rsGo" class="ghost">불러오기 실행</button><button id="rsYes" class="ghost hidden">덮어쓰기 확인</button><button id="bkClose" class="ghost">닫기</button></div></div>
       <button id="menuBack" class="primary">돌아가기</button>
     </div>
 
@@ -2300,7 +2315,7 @@ function renderDaily(){const c=dailyCfg(),v=loadDaily(c.key),row=(a,b)=>`<div cl
 function startDaily(){if(!SPR.player)return;coop=false;p2=null;daily=dailyCfg();dailyDone=false;const keep=selStage;selStage=daily.stage;rush=false;rushDone=false;REC.plays++;saveRec();Snd.init();resetGame();selStage=keep;
   contLeft=0;if(daily.pw)player.power=3;state='play';show(null);Snd.engine(true);updateLoopBtn();updateBombBtn();Music.play(stageBgm());}
 function toTitle(){{const kt=$('kidTip');if(kt)kt.classList.toggle('hidden',!(dmode==='kid'&&(REC.kidClr||0)>=3));}rush=false;coop=false;p2=null;drag2=null;onlineLeave();if(netRole)netClose();daily=null;state='title';player=null;enemies=[];eB=[];pB=[];items=[];theme=THEMES[0];show('title');Snd.engine(false);Music.play('title');}
-const ACH=[['clear1','첫 작전 성공','작전 하나를 클리어'],['boss10','보스 사냥꾼','보스 누적 10회 격파'],['allboss','전 보스 격파','보스 7종을 모두 격파'],['ragefast','폭주 속공','분노한 보스를 15초 안에 격파'],
+const ACH=[['clear1','첫 작전 성공','작전 하나를 클리어'],['boss10','보스 사냥꾼','보스 누적 10회 격파'],['allboss','전 보스 격파','보스 8종을 모두 격파'],['ragefast','폭주 속공','분노한 보스를 15초 안에 격파'],
   ['combo30','연속 격추 30','콤보 30 달성'],['combo60','연속 격추 60','콤보 60 달성'],['gradeS','완벽한 작전','S 등급 획득'],['nohit','무피격','피격 없이 작전 클리어'],
   ['elite10','정예 사냥','정예 적 누적 10기 격추'],['kills1000','격추왕','누적 1,000기 격추'],['event5','돌발 대응','돌발 이벤트 5회 성공'],['loop','한 바퀴','제1작전부터 마지막 작전까지 돌파'],['rush','보스 러시 완주','보스 러시 끝까지 클리어'],['finalwin','흑운 격퇴','흑운 원수 전용기 격파'],['rivalwin','붉은 매 격추','라이벌 붉은 매 격추'],['allships','만능 조종사','모든 기체로 작전 클리어'],['thief10','도둑 잡는 경찰','도둑 비행기 10회 검거']];
 let REC=(()=>{let r=null;try{r=JSON.parse(store.get('ccb_rec','null'));}catch(e){}r=r&&typeof r==='object'?r:{};
@@ -2582,7 +2597,7 @@ function unlockAudio(){Snd.init();const ac=Snd.ac;if(!ac)return;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&b.id!=='loopBtn'&&b.id!=='bombBtn')SFX.play('click',{vol:.3});},true);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Snd.ac&&state!=='pause'&&Snd.ac.state==='suspended'){const r=Snd.ac.resume();if(r&&r.catch)r.catch(()=>{});}});
 function updateAudioStatus(){const st=Snd.ac?Snd.ac.state:'none';
-  const t=(st==='running'?'소리 상태: 정상':st==='none'?'소리 상태: 아직 켜지지 않음 (화면을 눌러주세요)':'소리 상태: 대기 중 ('+st+')')+' · 효과음 '+(SFX.ready?'준비됨('+SFX.samples+')':'준비 중')+' · 빌드 1015-3';
+  const t=(st==='running'?'소리 상태: 정상':st==='none'?'소리 상태: 아직 켜지지 않음 (화면을 눌러주세요)':'소리 상태: 대기 중 ('+st+')')+' · 효과음 '+(SFX.ready?'준비됨('+SFX.samples+')':'준비 중')+' · 빌드 1015-4';
   ['audioStat','audioStat0'].forEach(id=>{const el=$(id);if(el)el.textContent=t;});}
 updateAudioStatus();
 const BEEP_WAV='data:audio/wav;base64,UklGRoQJAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YWAJAACAgIKCgX56eHl/houMhnxybnJ9i5WVi3trY2l6j56gkntkWWB1kaaqmn1fUFZwk661o39bRktpk7W/rIRYPUBhkbvKtolWNTVYj8DUwZBVLSpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2LmARicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuYBGJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGf7nYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2LmARicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5gEYnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5gEYnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC5186gZDUoQ3qz1M6lajkpQXWt0c+ocD4rP3Cozc+sdUMtPWuiyc6vekgwPGedxc2yf00zO2OXwcy0hFM2O1+SvMu2iVg5O1yNuMm4jV08O1mIs8a5kWJAPFeEr8S6lWZEPVSAqsG6mGtIPlN7pr66m29MQFF4obu6nnRQQlB0nbi5oHhURE9xmbW4onxYRk9ulbG3o39cSU9rka62pYNgS09pjaq0poZkTlBniaeypolnUVBlhqOwp4trVFJkgqCup45vV1NjgJyrppByW1RifZmpppF1XlZhepWmpZN4YVhheJKjpJR7ZFphdo+go5V9Z1xidYyeoZV/al9jc4qbn5WBbWFjcoeYnpWDcGRlcoWVnJWFcmZmcYOTmpSGdWlncYGQl5SHd2tpcYCOlZOHeW5rcX6Lk5GIe3Btcn2JkZCIfHJvc3yHjo6IfnVxdHyGjI2Hf3dzdXyEiouHgHh1dnyDiImGgHp3eHyChoeFgHx5eXyBhIWEgH17e32AgoOCgH59fX6AgYGBgH9/f38=';
@@ -2687,6 +2702,23 @@ $('pnSave').onclick=()=>{REC.paint=REC.paint||{};REC.paint[pnL]={m:pnM,a:pnA,dc:
 $('pnBack').onclick=()=>{renderArmory();show('armory');};
 $('arBtn').onclick=()=>{renderArmory();show('armory');$('arBody').scrollTop=0;};$('arBack').onclick=()=>{syncTitleTag();syncStars();show('title');};$('arOpen').onclick=openBoxOv;$('boxBtn').onclick=openBoxOv;
 syncTitleTag();syncBoxBtns();syncStars();
+/* ---------- save backup / restore (ccb_* keys) ---------- */
+{const PFX='SKYF1:',bk=$('bkBox'),code=$('bkCode'),msg=$('bkMsg');let pend=null;
+ const keys=()=>{const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('ccb_'))o[k]=localStorage.getItem(k);}}catch(e){}return o;};
+ const enc=o=>PFX+btoa(unescape(encodeURIComponent(JSON.stringify({v:1,t:Date.now(),d:o}))));
+ const dec=s=>{s=String(s||'').replace(/\s+/g,'');if(!s.startsWith(PFX))throw 0;const j=JSON.parse(decodeURIComponent(escape(atob(s.slice(PFX.length)))));if(!j||j.v!==1||typeof j.d!=='object')throw 0;
+   const d={};for(const k in j.d){if(k.startsWith('ccb_')&&typeof j.d[k]==='string')d[k]=j.d[k];}if(!Object.keys(d).length)throw 0;return{d,t:j.t};};
+ const open=(mode)=>{bk.classList.remove('hidden');pend=null;$('rsYes').classList.add('hidden');$('rsGo').classList.toggle('hidden',mode!=='rs');$('bkCopy').classList.toggle('hidden',mode!=='bk');
+   if(mode==='bk'){const o=keys();code.value=enc(o);code.readOnly=true;msg.textContent=`기록 ${Object.keys(o).length}개 항목을 담은 백업 코드입니다. 복사해서 메모나 카톡 나에게 보내기로 보관하세요.`;}
+   else{code.value='';code.readOnly=false;msg.textContent='보관해 둔 백업 코드를 붙여넣고 [불러오기 실행]을 누르세요.';code.focus();}};
+ $('bkBtn').onclick=()=>open('bk');$('rsBtn').onclick=()=>open('rs');$('bkClose').onclick=()=>{bk.classList.add('hidden');pend=null;};
+ $('bkCopy').onclick=()=>{const v=code.value;const ok=()=>{msg.textContent='복사했습니다. 안전한 곳에 붙여넣어 보관하세요.';};
+   try{navigator.clipboard.writeText(v).then(ok,()=>{code.select();document.execCommand('copy');ok();});}catch(e){code.select();try{document.execCommand('copy');ok();}catch(_){msg.textContent='자동 복사가 막혀 있어요. 코드를 길게 눌러 직접 복사하세요.';}}};
+ $('rsGo').onclick=()=>{try{pend=dec(code.value);const n=Object.keys(pend.d).length,when=pend.t?new Date(pend.t).toLocaleString():'';
+     msg.textContent=`백업(${when}) ${n}개 항목을 찾았습니다. 지금 기록을 이 백업으로 덮어씁니다. 되돌릴 수 없습니다.`;$('rsYes').classList.remove('hidden');}
+   catch(e){pend=null;$('rsYes').classList.add('hidden');msg.textContent='올바른 백업 코드가 아닙니다. SKYF1: 로 시작하는 코드 전체를 붙여넣어 주세요.';}};
+ $('rsYes').onclick=()=>{if(!pend)return;try{Object.keys(keys()).forEach(k=>localStorage.removeItem(k));for(const k in pend.d)localStorage.setItem(k,pend.d[k]);}catch(e){msg.textContent='이 브라우저에 저장할 수 없습니다(사생활 보호 모드 등).';return;}
+   msg.textContent='불러왔습니다. 게임을 다시 시작합니다…';setTimeout(()=>location.reload(),600);};}
 
 $('scene').addEventListener('click',e=>{if(e.target.id==='scSkip')return;scNext();});$('scSkip').onclick=e=>{e.stopPropagation();if(scene){scene.i=scene.lines.length;scNext();}};
 {const li=$('logoImg'),ls=document.querySelector('#title .lgShine');if(li&&ls){const m=`url(${li.src})`;ls.style.webkitMaskImage=m;ls.style.maskImage=m;}}
