@@ -260,7 +260,7 @@ button:focus-visible{ outline:3px solid #F2A541; outline-offset:3px; }
 
     <div id="title" class="screen">
       <div class="logo"><img id="logoImg" alt="SKYFANG" src="ill/logo.webp"><i class="lgShine"></i></div>
-      <div class="shipsel shipcards" role="radiogroup" aria-label="기체"><button data-s="a" role="radio" class="scard"><img class="scp" alt="강하늘 대위"><img class="scs" alt="청천 기체"><b>청천</b><i>균형형</i></button><button data-s="b" role="radio" class="scard"><img class="scp" alt="서바람 중위"><img class="scs" alt="질풍 기체"><b>질풍</b><i>속도형</i></button><button data-s="c" role="radio" class="scard"><img class="scp" alt="마철수 소령"><img class="scs" alt="철벽 기체"><b>철벽</b><i>방어형</i></button><button data-s="d" role="radio" class="scard"><img class="scp" alt="윤별 소위"><img class="scs" alt="천둥 기체"><b>천둥</b><i>화력형</i></button><button data-s="e" role="radio" class="scard"><img class="scp" alt="한누리 중위"><img class="scs" alt="백운 기체"><b>백운</b><i>지원형</i></button></div>
+      <div class="shipsel shipcards" role="radiogroup" aria-label="기체"><button data-s="a" role="radio" class="scard"><img class="scp" alt="강하늘 대위"><img class="scs" alt="청천 기체"><b>청천</b><i>균형형</i></button><button data-s="b" role="radio" class="scard"><img class="scp" alt="이지율 중위"><img class="scs" alt="질풍 기체"><b>질풍</b><i>속도형</i></button><button data-s="c" role="radio" class="scard"><img class="scp" alt="마철수 소령"><img class="scs" alt="철벽 기체"><b>철벽</b><i>방어형</i></button><button data-s="d" role="radio" class="scard"><img class="scp" alt="이지후 소위"><img class="scs" alt="천둥 기체"><b>천둥</b><i>화력형</i></button><button data-s="e" role="radio" class="scard"><img class="scp" alt="한누리 중위"><img class="scs" alt="백운 기체"><b>백운</b><i>지원형</i></button></div>
       <p id="shipDesc" class="astat"></p>
       <div class="pnamerow"><span>✏️ 내 이름</span><input id="pName" maxlength="8" placeholder="조종사 이름 (선택)" autocomplete="off" enterkeyhint="done"></div>
       <div class="diffsel" role="radiogroup" aria-label="난이도"><button data-d="kid" role="radio">어린이</button><button data-d="easy" role="radio">쉬움</button><button data-d="normal" role="radio">보통</button><button data-d="hard" role="radio">어려움</button></div>
@@ -372,6 +372,7 @@ button:focus-visible{ outline:3px solid #F2A541; outline-offset:3px; }
     <div id="paintScr" class="screen hidden">
       <h2>도장 공방</h2>
       <div class="pnShips" id="pnShips"></div>
+      <div class="pnamerow"><span>✈️ 비행기 이름</span><input id="pnNick" maxlength="8" placeholder="예: 번개호" autocomplete="off" enterkeyhint="done"></div>
       <canvas id="pnPrev" width="600" height="380"></canvas>
       <p class="pnLbl">주색</p><div class="pnSw" id="pnMain"></div>
       <p class="pnLbl">포인트색</p><div class="pnSw" id="pnAcc"></div>
@@ -898,7 +899,7 @@ function resetGame(){
   startStage();
 }
 function startStage(){
-  thiefDone=false;thiefObj=null;starObj=null;starPlan=(!rush&&!daily&&!finalRound)?{t:rand(18,40)}:null;whale=null;if(player)player.gearSave=gearSet()?1:0;if(p2&&p2.alive===false)p2Revive();if(p2){p2.loops=Math.max(p2.loops||0,D().loops);if(!p2.bombs)p2.bombs=[];}whalePlan=(!rush&&!daily&&!finalRound&&!netRole&&stageNum>=2&&(!(REC.whaleSeen>0)||Math.random()<.15))?{t:rand(20,32)}:null;
+  thiefDone=false;thiefObj=null;starObj=null;starPlan=(!rush&&!daily&&!finalRound)?{t:rand(18,40)}:null;whale=null;compObj=null;if(player)player.gearSave=gearSet()?1:0;if(p2&&p2.alive===false)p2Revive();if(p2){p2.loops=Math.max(p2.loops||0,D().loops);if(!p2.bombs)p2.bombs=[];}whalePlan=(!rush&&!daily&&!finalRound&&!netRole&&stageNum>=2&&(!(REC.whaleSeen>0)||Math.random()<.15))?{t:rand(20,32)}:null;
   theme=THEMES[(stageNum-1)%THEMES.length]; diff=1+(stageNum-1)*.28;
   spawnT=2.2;redT=11;bomberT=14;shipT=5;
   phase=0;phaseT=0;mid=null;special=null;warn=null;callout=null;
@@ -1279,9 +1280,9 @@ function updateGrowth(dt){updateTalk(dt);tutTick(dt);updateAllies(dt);if(player)
 
 /* ---------- pilots & dialogue ---------- */
 const PILOTS={a:{name:'강하늘 대위',col:'#F2A541',start:['청천 1호기, 출격한다!','하늘은 우리가 지킨다!','편대, 나를 따르라!'],boss:['큰 놈이 나왔군. 침착하게 간다!','저 녀석만 잡으면 끝이다!'],clear:['임무 완수. 귀환한다!','좋아, 다음 작전도 문제없다!'],rival:'붉은 매다! 이번엔 놓치지 않는다!'},
-  b:{name:'서바람 중위',col:'#7FD3FF',start:['속도라면 자신 있어!','따라올 수 있으면 따라와 봐!','질풍, 발진!'],boss:['저 덩치로는 날 못 잡아!','빈틈은 내가 먼저 찾는다!'],clear:['역시 내가 제일 빠르지!','너무 쉬웠는데?'],rival:'붉은 매? 누가 더 빠른지 겨뤄 보자!'},
+  b:{name:'이지율 중위',col:'#7FD3FF',start:['속도라면 자신 있어!','따라올 수 있으면 따라와 봐!','질풍, 발진!'],boss:['저 덩치로는 날 못 잡아!','빈틈은 내가 먼저 찾는다!'],clear:['역시 내가 제일 빠르지!','너무 쉬웠는데?'],rival:'붉은 매? 누가 더 빠른지 겨뤄 보자!'},
   c:{name:'마철수 소령',col:'#9EE07A',start:['철벽, 전진한다. 다 막아주지.','탄막 따위 두렵지 않다!','천천히, 그러나 확실하게.'],boss:['상대가 크면 더 크게 부숴주마!','버텨라, 철벽은 무너지지 않는다!'],clear:['이상 없음. 다음 작전으로.','기체 손상 경미. 계속 간다.'],rival:'붉은 매라… 정면으로 상대해 주지.'},
-  d:{name:'윤별 소위',col:'#FF7A5A',start:['천둥 출격! 다 날려버리겠습니다!','막내라고 얕보지 마세요!','가까이 붙어서 쾅! 그게 제 방식이죠!'],boss:['우와, 엄청 크다! 그래도 쏜다!','선배님들, 제가 먼저 갑니다!'],clear:['해냈다! 선배님들 보셨죠?','다음 작전도 맡겨만 주세요!'],rival:'붉은 매! 천둥이 상대해 주마!'},
+  d:{name:'이지후 소위',col:'#FF7A5A',start:['천둥 출격! 다 날려버리겠습니다!','막내라고 얕보지 마세요!','가까이 붙어서 쾅! 그게 제 방식이죠!'],boss:['우와, 엄청 크다! 그래도 쏜다!','선배님들, 제가 먼저 갑니다!'],clear:['해냈다! 선배님들 보셨죠?','다음 작전도 맡겨만 주세요!'],rival:'붉은 매! 천둥이 상대해 주마!'},
   e:{name:'한누리 중위',col:'#BFE3FF',start:['백운 편대, 함께 간다!','호위기, 내 곁을 지켜!','다 같이 무사히 돌아가자!'],boss:['편대 전원, 집중 사격!','혼자가 아니야. 우리가 이긴다!'],clear:['전원 무사 귀환!','편대 덕분이야. 고마워!'],rival:'붉은 매! 편대의 힘을 보여 주지!'}};
 const CMD={name:'백두 대령',col:'#C9B8FF'};
 const STORY=[
@@ -1367,7 +1368,7 @@ function drawLinkCut(){const c=linkCut;if(!c)return;const t=c.t,d=c.dur,e=Math.m
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.font='26px "Black Han Sans",sans-serif';ctx.lineWidth=5;ctx.strokeStyle='#0B2232';ctx.strokeText('합체!',W/2,cy-18);ctx.fillStyle='#FFD23F';ctx.fillText('합체!',W/2,cy-18);
   ctx.font='15px "Black Han Sans",sans-serif';ctx.lineWidth=4;ctx.strokeText(c.name,W/2,cy+16);ctx.fillStyle='#BFF1FF';ctx.fillText(c.name,W/2,cy+16);ctx.restore();}
 function kill(e){
-  linkGain(e);cdxKill(e);stats.kill++;combo++;comboT=2.4+.8*tl('combo');gainXP(e);if(combo>maxCombo)maxCombo=combo;REC.kills++;if(REC.kills>=1000)unlock('kills1000');
+  if(REC.compSel==='fire'&&compOf()&&player&&Math.random()<.25)spawnCoins(e.x,e.y,3);linkGain(e);cdxKill(e);stats.kill++;combo++;comboT=2.4+.8*tl('combo');gainXP(e);if(combo>maxCombo)maxCombo=combo;REC.kills++;if(REC.kills>=1000)unlock('kills1000');
   if(combo>REC.maxCombo)REC.maxCombo=combo;if(combo>=30)unlock('combo30');if(combo>=60)unlock('combo60');
   const mul=comboMult();{const fv=fever>0?2:1,sc=Math.round(e.score*mul*rScore()*(ev&&ev.kind==='fog'&&!ev.done?2:1)*fv);addScore(sc,e.x,e.y);if(fv>1){feverGain+=sc/2|0;spawnCoins(e.x,e.y,e.type==='boss'?24:e.type==='mid'?14:e.type==='bomber'||e.type==='ship'?7:4);}}
   if(fever<=0&&state==='play'&&combo>=feverNext&&e.type!=='boss')startFever();if(combo===5||combo===15||combo===30)pop(player.x,player.y-46,`콤보 ×${mul}`,'#FFD23F');
@@ -1523,6 +1524,19 @@ const GIM_TXT={ambush:['밀림 매복','숲속에서 대공포가 불쑥 나타�
   floe:['유빙 엄폐','유빙과 암초가 적탄을 막아 줌'],sand:['모래폭풍','폭풍 중에는 바람에 밀림'],lava:['분화탄','주황 원 안에 용암탄이 떨어짐'],gust:['난기류','난기류가 기체를 밀어냄']};
 function gimIsland(isl){if(!gim||gim.k!=='coast'||Math.random()>.45)return;stats.spawn++;const hp=Math.round(8+3*diff);
   enemies.push({type:'ship',aa:true,ground:true,coastGun:true,x:clamp(isl.x+rand(-isl.s.w*.18,isl.s.w*.18),20,W-20),y:isl.y,v:0,hp,max:hp,r:14,hw:14,hh:14,score:600,flash:0,age:0,fireT:rand(1.5,2.5),burst:0});}
+function updateComp(dt){const c=compOf(),p=player;if(!c||!p||!p.alive){if(!c)compObj=null;return;}
+  const o=compObj||(compObj={x:p.x-30,y:p.y+40,t:0,cd:2,id:c[0]});if(o.id!==c[0]){o.id=c[0];o.cd=2;}o.t+=dt;o.cd-=dt;const tx=p.x-40,ty=p.y+10+Math.sin(o.t*3)*4,k=Math.min(1,dt*6);o.x+=(tx-o.x)*k;o.y+=(ty-o.y)*k;
+  if(c[0]==='robot'&&o.cd<=0){o.cd=.45;pB.push({x:o.x,y:o.y-8,vx:0,vy:-560,r:3,tier:0,dmg:.6});}
+  else if(c[0]==='whale'&&o.cd<=0){o.cd=8;let n=0;eB=eB.filter(b=>{const f=(b.x-o.x)**2+(b.y-o.y)**2<95*95;if(f){n++;hitSpark(b.x,b.y);}return!f;});starBurst(o.x,o.y-6,'#7FD3FF',10);if(n)pop(o.x,o.y-20,'물대포!','#7FD3FF');}
+  else if(c[0]==='dragon'&&o.cd<=0){o.cd=4;for(let i=0;i<7;i++){const a=-Math.PI/2+(i-3)*.16;pB.push({x:o.x,y:o.y-6,vx:Math.cos(a)*420,vy:Math.sin(a)*420,r:4,tier:1,dmg:1.2,life:.38});}SFX.play('spFire',{vol:.2,gap:.5});}
+  else if(c[0]==='bird'){for(const it of items){if(it.got)continue;const dx=o.x-it.x,dy=o.y-it.y,d=Math.hypot(dx,dy);if(d<170&&d>1){it.x+=(p.x-it.x)*Math.min(1,dt*2.5);it.y+=(p.y-it.y)*Math.min(1,dt*2.5);}}}
+  else if(c[0]==='cloud'&&o.cd<=0){const i=eB.findIndex(b=>(b.x-p.x)**2+(b.y-p.y)**2<30*30);if(i>=0){const b=eB[i];eB.splice(i,1);hitSpark(b.x,b.y);pop(p.x,p.y-30,'구름이 막았다!','#E8F1FF');o.cd=10;}}}
+function drawComp(){const c=compOf(),o=compObj;if(!c||!o||!player||!player.alive)return;const S=COMP_ART&&SPR['comp_'+c[0]];
+  if(S)ctx.drawImage(S.c,o.x-S.w/2,o.y-S.h/2,S.w,S.h);else{ctx.save();ctx.font='20px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c[2],o.x,o.y);ctx.restore();}
+  if((REC.compName||{})[c[0]])txt(compNm(c),o.x,o.y-24,8,'#BFE3FF','center',FONT_D,.8);}
+function compHtml(){const own=COMPS.filter(c=>(REC.comp||{})[c[0]]);let h=`<h3>꼬마 동료 <small>${own.length}/${COMPS.length} · 작전 1~6 첫 클리어마다 1마리</small></h3><div class="cdxgrid">`;
+  for(const c of COMPS){const has=(REC.comp||{})[c[0]],on=REC.compSel===c[0];h+=has?`<button class="cdxc${on?' on':''}" data-cp="${c[0]}"><div class="gico">${c[2]}</div><b>${hesc(compNm(c))}</b><span>${on?'함께 출격 중':c[3]}</span></button>`:`<div class="cdxc lock"><div class="gico" style="opacity:.35">❔</div><b>???</b><span>작전 ${COMPS.indexOf(c)+1} 첫 클리어</span></div>`;}
+  h+='</div>';const cs=compOf();if(cs)h+=`<div class="pnamerow" style="justify-content:center"><span>${cs[2]} 이름</span><input id="cpName" maxlength="8" value="${hesc((REC.compName||{})[cs[0]]||'')}" placeholder="${cs[1]}" autocomplete="off" enterkeyhint="done"></div>`;return h;}
 let whale=null,whalePlan=null;
 const WH_CH=[-156,-73,1,75,147],WH_BLOW=-201;
 function whaleStart(){const hp=Math.round(18+6*diff);whale={t:0,ph:'warn',x:W/2,y:H+SPR.whale0.h/2+40,ch:WH_CH.map(oy=>({oy,hp,max:hp,open:0,fl:0})),opened:0,spT:2.5};
@@ -2062,6 +2076,7 @@ function stageClear(){if(dmode==='kid'&&!rush&&!daily){REC.kidClr=(REC.kidClr||0
   const bonus=Math.round(Math.round(rate*100)*300*(grade==='S'?2:grade==='A'?1.5:1));
   clearInfo={rate,bonus,grade,maxCombo,hits:stHits,graze:stGraze,medal:stMedal};addScore(bonus);clearT=5.5;
   if(!rush&&!daily){const hun=stMedal+{S:5,A:3,B:2,C:1}[grade];clearInfo.hun=hun;pops.push({x:W/2,y:H*.62,txt:`훈장 +${hun}`,t:0,col:'#FFD23F'});gainMedals(hun);}
+  if(!rush&&!daily&&!finalRound){const ti3=themeIdx();if(ti3<COMPS.length){REC.comp=REC.comp||{};const c=COMPS[ti3];if(!REC.comp[c[0]]){REC.comp[c[0]]=1;if(!REC.compSel)REC.compSel=c[0];if(COMPS.every(x=>REC.comp[x[0]]))unlock('comp6');achToast={name:`${c[2]} ${c[1]}`,t:0,label:'새 꼬마 동료! · 보급고에서 이름 짓기',col:'#BFE3FF',bg:'rgba(10,30,50,.92)'};}}}
   if(!rush&&!daily&&!finalRound){const ob=[stHits===0,!!stObj.parts,!!stObj.speed],ti2=themeIdx();REC.obj=REC.obj||{};const OL=REC.obj[dmode]||(REC.obj[dmode]=[]),old=OL[ti2]||0;let nw=old,gain=0;
     ob.forEach((v,i)=>{if(v&&!(old>>i&1)){nw|=1<<i;gain+=5;}});OL[ti2]=nw;clearInfo.ob=ob;clearInfo.obNew=nw^old;
     if(stObj.btime!=null){REC.btime=REC.btime||{};const bk=dmode+ti2;if(!REC.btime[bk]||stObj.btime<REC.btime[bk])REC.btime[bk]=+stObj.btime.toFixed(1);}
@@ -2097,7 +2112,7 @@ function updateStage(dt){
 function update(dt){
   T+=dt;contTick(dt);if(state==='play')updateStrikes(dt);for(const r of rearWarn)r.t-=dt;if(rearWarn.length&&rearWarn[0].t<-1)rearWarn=rearWarn.filter(r=>r.t>-1);updateScenery(dt);
   if(state==='play'||state==='over'){
-    if(state==='play'){if(comboT>0&&fever<=0){comboT-=dt;if(comboT<=0){combo=0;feverNext=40;}}if(fever>0){fever-=dt;if(fever<=0)endFever();}updateCoins(dt);stT+=dt;updateMedals();updateGrowth(dt);updateRoute(dt);rivalTick();thiefTick(dt);thiefCheck();starTick(dt);whaleTick(dt);if(coop)updateP2(dt);onlineTick(dt);if(wishFx>0)wishFx-=dt;updateEvent(dt);updateGimmick(dt);updateStage(dt);updatePlayer(dt);updateSpecial(dt);}
+    if(state==='play'){if(comboT>0&&fever<=0){comboT-=dt;if(comboT<=0){combo=0;feverNext=40;}}if(fever>0){fever-=dt;if(fever<=0)endFever();}updateCoins(dt);stT+=dt;updateMedals();updateGrowth(dt);updateRoute(dt);rivalTick();thiefTick(dt);thiefCheck();starTick(dt);whaleTick(dt);updateComp(dt);if(coop)updateP2(dt);onlineTick(dt);if(wishFx>0)wishFx-=dt;updateEvent(dt);updateGimmick(dt);updateStage(dt);updatePlayer(dt);updateSpecial(dt);}
     updateEnemies(dt);updateBullets(dt);updateItems(dt);
   }
   if(callout){callout.t+=dt;if(callout.t>1.1)callout=null;}
@@ -2362,7 +2377,7 @@ function render(){linkUi();
       if(p.fzT>0){ctx.save();ctx.globalAlpha=.5*Math.min(1,p.fzT);ctx.lineWidth=3;ctx.strokeStyle='#FF8A3C';ctx.beginPath();ctx.arc(p.x,p.y,34+Math.sin(T*16)*3,0,TAU);ctx.stroke();ctx.restore();}
       if(p.ksh){ctx.save();ctx.globalAlpha=.4+.12*Math.sin(T*4);ctx.lineWidth=2.2;ctx.strokeStyle='#7FE3FF';ctx.beginPath();ctx.arc(p.x,p.y,30,0,TAU);ctx.stroke();ctx.restore();}
       if(p.shT>0||p.rfT>0){const sh=p.shT>0,a=Math.min(1,sh?p.shT:p.rfT);ctx.save();ctx.globalAlpha=.55*a;ctx.lineWidth=3;ctx.strokeStyle=sh?'#9EE07A':'#FFB347';ctx.beginPath();ctx.arc(p.x,p.y,sh?50+Math.sin(T*8)*2:80+Math.sin(T*10)*3,0,TAU);ctx.stroke();ctx.globalAlpha=.15*a;ctx.fillStyle=sh?'#9EE07A':'#FFB347';ctx.fill();ctx.restore();}
-      drawGearFx(p,p.y-Math.sin(lp*Math.PI)*16,sc,0);drawPlane(PKM(p),p.x,p.y-Math.sin(lp*Math.PI)*16,0,sc*(1-Math.abs(p.bank)*.22),sc*sy,PROPS.player,false);drawGearFx(p,p.y-Math.sin(lp*Math.PI)*16,sc,1);if(myName()&&p.loop<=0)txt(myName(),p.x,p.y+24,9,'#FFE9A8','center',FONT_D,.8);
+      drawGearFx(p,p.y-Math.sin(lp*Math.PI)*16,sc,0);drawPlane(PKM(p),p.x,p.y-Math.sin(lp*Math.PI)*16,0,sc*(1-Math.abs(p.bank)*.22),sc*sy,PROPS.player,false);drawGearFx(p,p.y-Math.sin(lp*Math.PI)*16,sc,1);{const tg=[myName(),plNick()].filter(Boolean).join(' · ');if(tg&&p.loop<=0)txt(tg,p.x,p.y+24,9,'#FFE9A8','center',FONT_D,.8);}drawComp();
       if(hbOn&&p.loop<=0){const hr=HBR()*SHIP().hit,pu=.75+.25*Math.sin(T*8);ctx.fillStyle='rgba(255,255,255,.95)';ctx.beginPath();ctx.arc(p.x,p.y,hr+1.6,0,TAU);ctx.fill();ctx.fillStyle=`rgba(255,40,60,${pu})`;ctx.beginPath();ctx.arc(p.x,p.y,hr,0,TAU);ctx.fill();}
       if(p.muzzle>0&&p.loop<=0){ctx.globalCompositeOperation='lighter';const mc=p.power>=6?16:12;blit(SPR.glow,p.x-12,p.y-19,mc,.9);blit(SPR.glow,p.x+12,p.y-19,mc,.9);ctx.globalCompositeOperation='source-over';}
     }
@@ -2432,16 +2447,22 @@ function endNext(){const q=endQ;if(!q)return;q.i++;const pg=q.pages[q.i];if(!pg)
   const pic=$('endPic'),cap=$('endCap'),sum=$('endSum');
   if(pg.sum){pic.classList.add('hidden');cap.textContent='';sum.classList.remove('hidden');
     const t=Math.round((performance.now()-runT0)/1000),mm=Math.floor(t/60),ss=String(t%60).padStart(2,'0'),row=(a,b)=>`<div class="rrow"><span>${a}</span><span>${b}</span></div>`;
-    sum.innerHTML=`<h2>작전 완수!</h2>`+row('기체',`${SHIP().name} · ${hesc((pilotP(selShip)||{}).name||'')}`)+row('난이도',D().name)+row('점수',score.toLocaleString())+row('플레이 시간',`${mm}분 ${ss}초`)
+    sum.innerHTML=`<h2>작전 완수!</h2>`+row('기체',`${SHIP().name}${plNick()?' 「'+hesc(plNick())+'」':''} · ${hesc((pilotP(selShip)||{}).name||'')}`)+row('난이도',D().name)+row('점수',score.toLocaleString())+row('플레이 시간',`${mm}분 ${ss}초`)
       +row('이번 격추',`${Math.max(0,REC.kills-runK0).toLocaleString()}기`)+row('얻은 훈장',`${Math.max(0,(REC.medals||0)-runM0)}개 · 현재 ${rankName()}`)+(q.tru?row('숨은 엔딩','달성!'):row('숨은 엔딩','붉은 매를 격추하고 최종전을 무피격으로'))
-      +`<div class="endcred"><div>SKYFANG<br><br>남방 연합 공군<br>강하늘 · 서바람 · 마철수 · 윤별 · 한누리<br><br>사령관 백두 대령<br><br>흑운 제국<br>흑운 원수 · 붉은 매 · 적광석 박사<br><br>그리고<br>끝까지 날아 준 ${myName()?hesc(callName()):'당신'}<br><br>감사합니다!</div></div>`;
+      +`<div class="endcred"><div>SKYFANG<br><br>남방 연합 공군<br>강하늘 · 이지율 · 마철수 · 이지후 · 한누리<br><br>사령관 백두 대령<br><br>흑운 제국<br>흑운 원수 · 붉은 매 · 적광석 박사<br><br>그리고<br>끝까지 날아 준 ${myName()?hesc(callName()):'당신'}<br><br>감사합니다!</div></div>`;
     $('endNext').textContent='2바퀴째 도전';$('endSkip').textContent='타이틀로';return;}
-  sum.classList.add('hidden');pic.classList.remove('hidden');$('endNext').textContent=q.i>=q.pages.length-2?'기록 보기':'다음';$('endSkip').textContent='건너뛰기';
+  sum.classList.add('hidden');pic.classList.remove('hidden');$('endNext').textContent=q.op?(q.i>=q.pages.length-1?'출격!':'다음'):q.i>=q.pages.length-2?'기록 보기':'다음';$('endSkip').textContent='건너뛰기';
   const old=$('endImg'),im=document.createElement('img');im.id='endImg';im.alt='';im.src=pg.img;if(pg.fit)im.className='fit';old.replaceWith(im);
   cap.textContent=pg.cap;cap.style.animation='none';void cap.offsetWidth;cap.style.animation='';}
+const OP_ART=false;
+function startOpening(after){const k=selShip,P=pilotP(k)||PILOTS.a,art=(n,fb,fit)=>OP_ART?{img:'ill/'+n+'.webp'}:{img:fb,fit};
+  const pages=[{...art('op1','img/island1.webp',1),cap:'평화로운 남방 섬. 오늘도 하늘은 맑고 바다는 반짝였다.'},
+    {...art('op2','img/final.webp',1),cap:'그때, 검은 구름과 함께 흑운 제국의 함대가 하늘을 뒤덮었다!'},
+    {...art('op3',IMG_SRC['pilot_'+k]||'ill/emb.webp',1),cap:`${P.name}: “남방 연합 공군, 출격한다! 하늘은 우리가 지킨다!”`}];
+  endQ={i:-1,pages,after,op:1};state='ending';show('ending');Snd.engine(false);Music.play('title');endNext();}
 function endFinish(cont){const q=endQ;endQ=null;if(!q)return;if(cont)q.after();else gameOver();}
 $('endNext').onclick=()=>{const q=endQ;if(!q)return;if(q.pages[q.i]&&q.pages[q.i].sum){endFinish(true);return;}endNext();};
-$('endSkip').onclick=()=>{const q=endQ;if(!q)return;if(q.pages[q.i]&&q.pages[q.i].sum){endFinish(false);return;}q.i=q.pages.length-2;endNext();};
+$('endSkip').onclick=()=>{const q=endQ;if(!q)return;if(q.op){endFinish(true);return;}if(q.pages[q.i]&&q.pages[q.i].sum){endFinish(false);return;}q.i=q.pages.length-2;endNext();};
 const HG=[['loop','회피 +1','공중제비 회피 횟수 1회 추가',p=>p.loops<6,p=>{p.loops++;updateLoopBtn();}],
   ['bomb','필살기 +1','무작위 필살기 1개 추가',p=>p.bombs.length<5,p=>{p.bombs.push(SPEC_KINDS[Math.floor(Math.random()*3)]);updateBombBtn();}],
   ['pow','화력 +1','화력 1단계 강화',p=>p.power<6,p=>{p.power++;}],
@@ -2457,7 +2478,7 @@ function openHangar(){const p=player;state='hangar';drag=null;Snd.engine(false);
     b.onclick=()=>{if(state!=='hangar')return;SFX.play('click',{k:1});h[4](p);state='play';show(null);stageNum++;startStage();Snd.engine(true);last=performance.now();runScene();};$('hgOpts').appendChild(b);});
   {const hi=$('hgImg');hi.src=victoryHg?ILL.win:ILL.emb;$('hangar').querySelector('h2').textContent=victoryHg?'흑운 격파!':'정비 시간';hi.classList.toggle('win',victoryHg);if(victoryHg){$('hgSub').textContent='흑운 원수 격파! 더 강해진 적이 기다립니다 · 강화 1개를 고르세요';}victoryHg=false;}
   show('hangar');}
-function startGame(){if(!SPR.player)return;coop=false;p2=null;drag2=null;daily=null;if(!onlineMode)onlineLeave();onlineMode=false;rush=false;rushDone=false;REC.plays++;saveRec();Snd.init();resetGame();tutStart();state='play';show(null);Snd.engine(true);updateLoopBtn();Music.play(stageBgm());runScene();}
+function startGame(){if(!SPR.player)return;if(!REC.opSeen&&selStage===1&&state!=='ending'){REC.opSeen=1;saveRec();startOpening(()=>startGame());return;}coop=false;p2=null;drag2=null;daily=null;if(!onlineMode)onlineLeave();onlineMode=false;rush=false;rushDone=false;REC.plays++;saveRec();Snd.init();resetGame();tutStart();state='play';show(null);Snd.engine(true);updateLoopBtn();Music.play(stageBgm());runScene();}
 function togglePause(){if(state==='play'){state='pause';show('pause');$('volM2').value=Music.mv;$('volS2').value=Snd.sv;updateAudioStatus();Snd.engine(false);Music.pause();drag=null;}else if(state==='pause'){state='play';show(null);Snd.engine(true);Music.resume();last=performance.now();}}
 let contLeft=3,contT=0,contShown=-1;
 function showContinue(){state='cont';contT=10;contShown=-1;$('contLeft').textContent=`남은 기회 ${contLeft}회 · 점수와 스테이지는 그대로 이어집니다`;show('cont');Snd.engine(false);Music.ramp(Music.vol()*.35,.5);drag=null;}
@@ -2492,7 +2513,7 @@ function saveRec(){store.set('ccb_rec',JSON.stringify(REC));}
 let achToast=null;
 function unlock(id){if(REC.ach[id])return;REC.ach[id]=Date.now();saveRec();const a=ACH.find(x=>x[0]===id);if(a){achToast={name:a[1],t:0};SFX.play('oneup',{vol:.45});}}
 
-ACH.push(['trueend','숨은 엔딩','붉은 매를 격추하고 최종전을 무피격으로 클리어'],['evo1','첫 진화','특성 진화 달성'],['close5','근접 격파','보스·중간보스 근접 격파 5회'],['objall','작전 목표 완수','한 난이도에서 모든 작전 목표 달성'],['whale','고래의 축복','하늘 고래의 보물 상자 5개 모두 열기']);
+ACH.push(['comp6','동료 부자','꼬마 동료 6마리 모두 만나기'],['trueend','숨은 엔딩','붉은 매를 격추하고 최종전을 무피격으로 클리어'],['evo1','첫 진화','특성 진화 달성'],['close5','근접 격파','보스·중간보스 근접 격파 5회'],['objall','작전 목표 완수','한 난이도에서 모든 작전 목표 달성'],['whale','고래의 축복','하늘 고래의 보물 상자 5개 모두 열기']);
 let starPlan=null,starObj=null,wishFx=0;
 function starStr(){const n=REC.stars||0;return '★'.repeat(n)+'☆'.repeat(7-n);}
 function syncStars(){const t=`별 조각 ${starStr()} ${REC.stars||0}/7`;['starTag','starLine'].forEach(id=>{const el=$(id);if(el)el.textContent=t;});}
@@ -2789,7 +2810,7 @@ function unlockAudio(){Snd.init();const ac=Snd.ac;if(!ac)return;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&b.id!=='loopBtn'&&b.id!=='bombBtn')SFX.play('click',{vol:.3});},true);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Snd.ac&&state!=='pause'&&Snd.ac.state==='suspended'){const r=Snd.ac.resume();if(r&&r.catch)r.catch(()=>{});}});
 function updateAudioStatus(){const st=Snd.ac?Snd.ac.state:'none';
-  const t=(st==='running'?'소리 상태: 정상':st==='none'?'소리 상태: 아직 켜지지 않음 (화면을 눌러주세요)':'소리 상태: 대기 중 ('+st+')')+' · 효과음 '+(SFX.ready?'준비됨('+SFX.samples+')':'준비 중')+' · 빌드 1017-16';
+  const t=(st==='running'?'소리 상태: 정상':st==='none'?'소리 상태: 아직 켜지지 않음 (화면을 눌러주세요)':'소리 상태: 대기 중 ('+st+')')+' · 효과음 '+(SFX.ready?'준비됨('+SFX.samples+')':'준비 중')+' · 빌드 1017-17';
   ['audioStat','audioStat0'].forEach(id=>{const el=$(id);if(el)el.textContent=t;});}
 updateAudioStatus();
 const BEEP_WAV='data:audio/wav;base64,UklGRoQJAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YWAJAACAgIKCgX56eHl/houMhnxybnJ9i5WVi3trY2l6j56gkntkWWB1kaaqmn1fUFZwk661o39bRktpk7W/rIRYPUBhkbvKtolWNTVYj8DUwZBVLSpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2LmARicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuYBGJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGf7nYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2LmARicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5gEYnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5gEYnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC5186gZDUoQ3qz1M6lajkpQXWt0c+ocD4rP3Cozc+sdUMtPWuiyc6vekgwPGedxc2yf00zO2OXwcy0hFM2O1+SvMu2iVg5O1yNuMm4jV08O1mIs8a5kWJAPFeEr8S6lWZEPVSAqsG6mGtIPlN7pr66m29MQFF4obu6nnRQQlB0nbi5oHhURE9xmbW4onxYRk9ulbG3o39cSU9rka62pYNgS09pjaq0poZkTlBniaeypolnUVBlhqOwp4trVFJkgqCup45vV1NjgJyrppByW1RifZmpppF1XlZhepWmpZN4YVhheJKjpJR7ZFphdo+go5V9Z1xidYyeoZV/al9jc4qbn5WBbWFjcoeYnpWDcGRlcoWVnJWFcmZmcYOTmpSGdWlncYGQl5SHd2tpcYCOlZOHeW5rcX6Lk5GIe3Btcn2JkZCIfHJvc3yHjo6IfnVxdHyGjI2Hf3dzdXyEiouHgHh1dnyDiImGgHp3eHyChoeFgHx5eXyBhIWEgH17e32AgoOCgH59fX6AgYGBgH9/f38=';
@@ -2857,6 +2878,11 @@ function myName(){return String(REC.pname||'').trim();}
 function callName(){const n=myName();return n?`${n} ${rankName()}`:'';}
 function pilotP(k){const P=PILOTS[k];if(!P)return P;return(k===selShip&&myName())?{...P,name:callName()}:P;}
 function hesc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+const COMPS=[['whale','아기 고래','🐳','8초마다 물을 뿜어 주변 적탄을 지워요'],['robot','꼬마 로봇','🤖','작은 탄을 쏘며 함께 싸워요'],['bird','아기 새','🐤','떨어진 아이템을 물어 와요'],
+  ['cloud','꼬마 구름','☁️','10초마다 적탄 1발을 막아 줘요'],['dragon','아기 용','🐲','4초마다 불을 뿜어요'],['fire','반딧불','✨','적을 잡으면 가끔 금화를 더 줘요']];
+const COMP_ART=false;let compObj=null;
+function compOf(){const id=REC.compSel;return id&&(REC.comp||{})[id]?COMPS.find(c=>c[0]===id):null;}
+function compNm(c){return String(((REC.compName||{})[c[0]])||c[1]);}
 function rankName(){return RANKS[rankIdx()][0];}
 function gainMedals(v){const r0=rankIdx();REC.medals=(REC.medals||0)+v;const r1=rankIdx();
   if(r1>r0){REC.box=(REC.box||0)+(r1-r0);achToast={name:RANKS[r1][0]+' 진급!',t:0,label:`계급 진급 · 보급상자 +${r1-r0}`,col:'#FFD23F',bg:'rgba(44,32,6,.92)'};SFX.play('oneup',{vol:.5});try{syncTitleTag();syncBoxBtns();}catch(e){}}
@@ -2883,6 +2909,10 @@ function bxTap(){const o=$('boxOv');if(bxBusy||o.classList.contains('open')||REC
     syncBoxBtns();if(state==='title'||$('armory')&&!$('armory').classList.contains('hidden'))renderArmory();},1050);}
 $('bxWrap').addEventListener('click',bxTap);$('bxMore').onclick=()=>{if(REC.box>0)openBoxOv();};$('bxClose').onclick=()=>{$('boxOv').classList.add('hidden');syncBoxBtns();if(!$('armory').classList.contains('hidden'))renderArmory();};
 {const pn=$('pName');if(pn){pn.value=myName();const sv=()=>{const v=pn.value.replace(/[<>&"'`\\]/g,'').trim().slice(0,8);REC.pname=v;saveRec();syncTitleTag();};pn.addEventListener('change',sv);pn.addEventListener('keydown',e=>{if(e.key==='Enter'){pn.blur();}});pn.addEventListener('pointerdown',e=>e.stopPropagation());}}
+{const nk=$('pnNick');if(nk){nk.addEventListener('change',()=>{REC.pnick=REC.pnick||{};REC.pnick[pnL]=nk.value.replace(/[<>&"'`\\]/g,'').trim().slice(0,8);saveRec();syncCardNicks();});nk.addEventListener('keydown',e=>{if(e.key==='Enter')nk.blur();});}}
+function plNick(k){return String(((REC.pnick||{})[k||selShip])||'').trim();}
+function syncCardNicks(){document.querySelectorAll('.shipsel button[data-s]').forEach(b=>{const i=b.querySelector('i');if(!i)return;if(!i.dataset.base)i.dataset.base=i.textContent;const n=plNick(b.dataset.s);i.textContent=n?'「'+n+'」':i.dataset.base;});}
+syncCardNicks();
 let gSel=null;
 function gearHtml(){if(!gSel||!SHIPS[gSel])gSel=selShip;const own=GEAR.filter(g=>REC.gear[g[0]]).length;
   let h=`<h3>격납고 <small>부품 ${own}/${GEAR.length} · 칸을 누르면 교체</small></h3><div class="chips">`+Object.keys(SHIPS).map(k=>`<button class="chip${k===gSel?' on':''}" data-gs="${k}">${SHIPS[k].name}</button>`).join('')+'</div><div class="cdxgrid">';
@@ -2891,7 +2921,7 @@ function gearHtml(){if(!gSel||!SHIPS[gSel])gSel=selShip;const own=GEAR.filter(g=
   h+='</div>';const set=['eng','wing','gun'].every(sl=>{const id=gearOf(sl,gSel);return id&&GEARD[id].tier===2;});
   h+=`<p class="astat">${set?'✨ 전설 세트 발동: 작전마다 격추 1회 무효':'전설 부품 3칸을 모두 채우면 세트 효과 (작전마다 격추 1회 무효)'}</p>`;return h;}
 function renderArmory(){$('arMed').textContent=`${rankName()} · 훈장 ${REC.medals.toLocaleString()}개${rankIdx()+1<RANKS.length?` (다음 ${RANKS[rankIdx()+1][0]}까지 ${RANKS[rankIdx()+1][1]-REC.medals}개)`:''} · 도장 ${Object.keys(REC.skins).length}/${SKINS.length} · 칭호 ${Object.keys(REC.titles).length}/${TITLES.length}`;syncBoxBtns();
-  let h=gearHtml()+`<button id="pnOpen" class="boxbtn pnbtn">🎨 도장 공방 · 내 비행기 색칠하기</button><h3>도장 <small>(${SHIP().name}에 미리보기)</small></h3><div class="cdxgrid">`;
+  let h=compHtml()+gearHtml()+`<button id="pnOpen" class="boxbtn pnbtn">🎨 도장 공방 · 내 비행기 색칠하기</button><h3>도장 <small>(${SHIP().name}에 미리보기)</small></h3><div class="cdxgrid">`;
   {const p=(REC.paint||{})[selShip]||{};if(p.m||p.a||p.dc||REC.skin==='mine')h+=`<button class="cdxc${REC.skin==='mine'?' on':''}" data-sk="mine"><img src="${skinThumb('mine')}" alt=""><b class="r1">내 도장</b><span>${REC.skin==='mine'?'장착 중':'눌러서 장착'}</span></button>`;}
   for(const d of SKINS){const own=REC.skins[d[0]],tc=d[2]?'r'+d[2]:'';h+=own?`<button class="cdxc${REC.skin===d[0]?' on':''}" data-sk="${d[0]}"><img src="${skinThumb(d[0])}" alt=""><b class="${tc}">${d[1]}</b><span>${REC.skin===d[0]?'장착 중':'눌러서 장착'}</span></button>`
     :`<div class="cdxc lock"><div style="height:15cqw;display:flex;align-items:center;justify-content:center;font-size:8cqw">❔</div><b class="${tc}">???</b><span>${TIER_NAME[d[2]]} 보급상자</span></div>`;}
@@ -2900,6 +2930,8 @@ function renderArmory(){$('arMed').textContent=`${rankName()} · 훈장 ${REC.me
   h+='</div>';$('arBody').innerHTML=h;
   $('arBody').querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{REC.skin=b.dataset.sk;saveRec();SFX.play('click',{k:1});renderArmory();refreshCards();});
   $('pnOpen').onclick=()=>openPaint();
+  $('arBody').querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>{REC.compSel=b.dataset.cp;saveRec();SFX.play('click',{k:1});renderArmory();});
+  {const cn=$('cpName');if(cn){cn.onchange=()=>{const c=compOf();if(!c)return;REC.compName=REC.compName||{};REC.compName[c[0]]=cn.value.replace(/[<>&"'`\\]/g,'').trim().slice(0,8);saveRec();renderArmory();};cn.onkeydown=e=>{if(e.key==='Enter')cn.blur();};}}
   $('arBody').querySelectorAll('[data-gs]').forEach(b=>b.onclick=()=>{gSel=b.dataset.gs;SFX.play('click',{k:1});renderArmory();});
   $('arBody').querySelectorAll('[data-gslot]').forEach(b=>b.onclick=()=>{const sl=b.dataset.gslot,own=GEAR.filter(g=>g[2]===sl&&REC.gear[g[0]]).map(g=>g[0]),list=[null,...own],cur=gearOf(sl,gSel);
     const nx=list[(list.indexOf(cur)+1)%list.length];REC.equip[gSel]=REC.equip[gSel]||{};REC.equip[gSel][sl]=nx;saveRec();SFX.play('click',{k:1});renderArmory();});
@@ -2910,6 +2942,7 @@ let pnL='a',pnM=null,pnA=null,pnDc=null,pnDp='wing';
 function refreshCards(){document.querySelectorAll('.scard').forEach(b=>{const k=SHIPS[b.dataset.s].key,im=b.querySelectorAll('img')[1];if(!im||!SPR[k])return;const sk=REC.skin||'base';im.src=sk==='base'?(IMG_SRC[k]||''):SPR[skinKey(sk,k)].c.toDataURL();});}
 function openPaint(){pnL=selShip;const p=(REC.paint||{})[pnL]||{};pnM=p.m||null;pnA=p.a||null;pnDc=p.dc||null;pnDp=p.dp||'wing';renderPaint();show('paintScr');$('paintScr').scrollTop=0;}
 function renderPaint(){
+  {const nk=$('pnNick');if(nk)nk.value=(REC.pnick||{})[pnL]||'';}
   $('pnShips').innerHTML=Object.keys(SHIPS).map(k=>`<button data-l="${k}" class="${k===pnL?'on':''}">${SHIPS[k].name}</button>`).join('');
   $('pnShips').querySelectorAll('button').forEach(b=>b.onclick=()=>{pnL=b.dataset.l;const p=(REC.paint||{})[pnL]||{};pnM=p.m||null;pnA=p.a||null;pnDc=p.dc||null;pnDp=p.dp||'wing';SFX.play('click',{k:1});renderPaint();});
   const sw=(id,cur,set)=>{$(id).innerHTML=`<button data-c="" class="${cur?'':'on'}" style="background:conic-gradient(#E53935,#FDD835,#7CB342,#1E88E5,#8E24AA,#E53935)" title="원래 색">원</button>`+PAINT_COLS.map(c=>`<button data-c="${c}" class="${cur===c?'on':''}" style="background:${c}"></button>`).join('');
