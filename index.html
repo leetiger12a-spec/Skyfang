@@ -61,6 +61,22 @@ canvas{ display:block; width:100%; height:100%; touch-action:none; }
 .emb{ width:34cqw; max-width:170px; filter:drop-shadow(0 1cqw 1.6cqw rgba(0,0,0,.45)); }
 .emb.win{ width:42cqw; max-width:220px; aspect-ratio:600/804; object-fit:cover; border-radius:14px; border:3px solid var(--sand); filter:none; box-shadow:0 1.5cqw 4cqw rgba(0,0,0,.5); }
 #over,#hangar{ gap:2cqh; overflow-y:auto; }
+#ending{ gap:2cqh; overflow-y:auto; background:#06121C; }
+.endpic{ width:84cqw; max-width:420px; height:min(112cqw,58cqh); overflow:hidden; border-radius:14px; border:3px solid var(--sand); background:radial-gradient(circle at 50% 40%,#244a66,#0a1b28); box-shadow:0 2cqw 6cqw rgba(0,0,0,.6); }
+.endpic.hidden{ display:none; }
+.endpic img{ width:100%; height:100%; object-fit:cover; display:block; animation:kb 7s ease-out forwards; }
+.endpic img.fit{ object-fit:contain; padding:6cqw; box-sizing:border-box; }
+@keyframes kb{ from{ transform:scale(1.18) translateY(3%); opacity:0; } 12%{ opacity:1; } to{ transform:scale(1) translateY(0); opacity:1; } }
+.endcap{ margin:0; max-width:86cqw; font-size:4.3cqw; line-height:1.6; text-align:center; color:var(--ink); min-height:14cqw; animation:capIn .8s ease both; }
+@keyframes capIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+.endsum{ width:86cqw; max-width:430px; display:flex; flex-direction:column; gap:1.2cqh; }
+.endsum.hidden{ display:none; }
+.endsum .rrow{ display:flex; justify-content:space-between; gap:3cqw; padding:.7cqh 2cqw; border-bottom:1px solid rgba(234,212,155,.18); font-size:3.8cqw; }
+.endsum .rrow span:last-child{ color:var(--sand); text-align:right; }
+.endsum h2{ margin:0; text-align:center; }
+.endcred{ height:16cqh; overflow:hidden; position:relative; mask-image:linear-gradient(transparent,#000 15%,#000 85%,transparent); -webkit-mask-image:linear-gradient(transparent,#000 15%,#000 85%,transparent); }
+.endcred div{ position:absolute; left:0; right:0; text-align:center; line-height:2; font-size:3.8cqw; color:var(--sand); animation:cred 22s linear infinite; }
+@keyframes cred{ from{ transform:translateY(16cqh); } to{ transform:translateY(-100%); } }
 #title .logo{ width:92cqw; max-width:440px; filter:drop-shadow(0 1.2cqw 1.6cqw rgba(0,0,0,.45)); animation:lgIn .7s cubic-bezier(.2,1.4,.4,1) both; }
 #title .logo{ position:relative; }
 #title .logo img{ display:block; width:100%; height:auto; }
@@ -307,6 +323,12 @@ button:focus-visible{ outline:3px solid #F2A541; outline-offset:3px; }
       </div>
     </div>
 
+    <div id="ending" class="screen hidden">
+      <div class="endpic" id="endPic"><img id="endImg" alt=""></div>
+      <p id="endCap" class="endcap"></p>
+      <div id="endSum" class="endsum hidden"></div>
+      <div class="row"><button id="endNext" class="primary">다음</button><button id="endSkip" class="ghost">건너뛰기</button></div>
+    </div>
     <div id="hangar" class="screen hidden">
       <img id="hgImg" class="emb" alt="">
       <h2>정비 시간</h2>
@@ -867,7 +889,7 @@ function terrainSet(){return theme.terrain==='home'?SPR.homeT:theme.terrain==='j
 function newCloud(y){const hi=Math.random()<.4;return{s:Math.floor(Math.random()*3),x:rand(-40,W+40),y,hi,v:hi?rand(95,120):rand(58,72),a:hi?rand(.35,.5):rand(.55,.8)};}
 
 function resetGame(){
-  score=0;lives=D().kid?4:2;nextLife=300000;fever=0;feverNext=40;feverGain=0;coins=[];try{if(Music.src)Music.src.playbackRate.value=1;}catch(e){}medal=0;finalRound=false;rivalLv=0;rivalDead=false;plv=0;pxp=0;TRL={};rg=0;allies=[];lvPend=0;lvOpen=null;od=0;odT=0;kc=0;misT=0;stageNum=selStage;startedAt=selStage;contLeft=3;
+  score=0;lives=D().kid?4:2;nextLife=300000;fever=0;feverNext=40;feverGain=0;coins=[];try{if(Music.src)Music.src.playbackRate.value=1;}catch(e){}medal=0;finalRound=false;rivalLv=0;rivalDead=false;runT0=performance.now();runK0=REC.kills;runM0=REC.medals||0;plv=0;pxp=0;TRL={};rg=0;allies=[];lvPend=0;lvOpen=null;od=0;odT=0;kc=0;misT=0;stageNum=selStage;startedAt=selStage;contLeft=3;
   player={x:W/2,y:H+30,tx:W/2,ty:H-110,power:Math.min(5,selStage),loops:D().loops,ksh:D().kid?1:0,kcd:0,esc:0,inv:2.5,loop:0,alive:true,fireT:0,respawn:0,bank:0,muzzle:0,bombs:(SPEC_KINDS=SHIP().sp).slice().sort(()=>Math.random()-.5).slice(0,D().bombs)};
   player.armor=SHIP().armor||0;if(SHIP().wing){player.esc=2;escorts.forEach(e=>{e.x=player.x;e.y=player.y+30;});}player.wp=SHIP().wp;if(SHIP().bombs)player.bombs=player.bombs.slice(0,Math.max(0,player.bombs.length+SHIP().bombs));pB=[];eB=[];items=[];parts=[];pops=[];
   startStage();
@@ -2049,7 +2071,7 @@ function afterClear(){if(sceneQ.length&&!rush&&!daily){runScene(afterClear2,'작
 function afterClear2(){
   if(daily){dailyDone=true;gameOver();return;}
   if(rush&&stageNum>=THEMES.length){unlock('rush');rushDone=true;gameOver();return;}
-  if(finalRound){finalRound=false;if(!rush&&startedAt===1)unlock('loop');victoryHg=true;openHangar();return;}
+  if(finalRound){finalRound=false;if(!rush&&startedAt===1)unlock('loop');if(!netRole){startEnding(()=>{victoryHg=true;openHangar();});return;}victoryHg=true;openHangar();return;}
   if(!rush&&!daily&&themeIdx()===THEMES.length-1){finalRound=true;startStage();runScene();return;}
   openHangar();}
 function nextPhase(){
@@ -2391,8 +2413,31 @@ function updateLoopBtn(){if(!player)return;$('loopN').textContent='×'+player.lo
 $('loopBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();Snd.init();if(netRole==='guest'){try{netConn&&netConn.send({t:'p2lp'});}catch(_){}return;}triggerLoop();});
 
 /* ---------- screens ---------- */
-function show(id){['title','menuScr','togScr','paintScr','pause','over','cont','hangar','records','dailyScr','codex','armory','scene','online'].forEach(s=>$(s).classList.toggle('hidden',s!==id));const playing=state==='play';$('pauseBtn').classList.toggle('hidden',!playing);$('loopBtn').classList.toggle('hidden',!playing);$('bombBtn').classList.toggle('hidden',!playing);}
-let rushDone=false;
+function show(id){['ending','title','menuScr','togScr','paintScr','pause','over','cont','hangar','records','dailyScr','codex','armory','scene','online'].forEach(s=>$(s).classList.toggle('hidden',s!==id));const playing=state==='play';$('pauseBtn').classList.toggle('hidden',!playing);$('loopBtn').classList.toggle('hidden',!playing);$('bombBtn').classList.toggle('hidden',!playing);}
+let rushDone=false,runT0=0,runK0=0,runM0=0,endQ=null;const END_ART=false;
+const END_LINE={a:'하늘은 다시 우리 것이다. 편대, 귀환한다!',b:'역시 제일 빨랐지? 다음 하늘도 내가 먼저 간다!',c:'철벽은 끝까지 버텼다. 모두 무사하다.',d:'선배님들, 저 해냈어요! 천둥 귀환합니다!',e:'다 같이 돌아왔어. 그게 제일 큰 승리야.'};
+function startEnding(after){const tru=rivalDead&&stHits===0,k=selShip,P=PILOTS[k]||PILOTS.a;REC.endSeen=(REC.endSeen||0)+1;if(tru){REC.trueEnd=(REC.trueEnd||0)+1;unlock('trueend');}saveRec();
+  const art=(n,fb,fit)=>END_ART?{img:'ill/'+n+'.webp'}:{img:fb,fit};
+  const pages=[{...art('end1','img/final.webp',1),cap:'흑운 원수의 전용기가 불꽃을 뿜으며 바다로 떨어진다.'},
+    {...art('end2','img/rg_temple.webp',1),cap:'적광석 수정이 산산이 부서지고, 하늘을 덮던 검은 구름이 걷힌다.'},
+    {...art('end3','ill/win.webp',0),cap:'남방 섬의 하늘 위로, 돌아온 편대가 축하 비행을 펼친다.'},
+    {...art('end4',IMG_SRC['pilot_'+k]||'ill/emb.webp',1),cap:`${P.name}: “${END_LINE[k]||END_LINE.a}”`}];
+  if(tru)pages.push({...art('end5',IMG_SRC.enemy_rival||'img/rival.webp',1),cap:'붉은 매: “…네 실력, 인정하지. 다음엔 같은 하늘에서 날아 보자.”'},{...art('end6','ill/emb.webp',1),cap:'숨은 엔딩 달성! 붉은 매가 남방 연합에 합류했다. — 다음 이야기에 계속 —'});
+  pages.push({sum:1});endQ={i:-1,pages,after,tru};state='ending';show('ending');Snd.engine(false);Music.play('title');endNext();}
+function endNext(){const q=endQ;if(!q)return;q.i++;const pg=q.pages[q.i];if(!pg){endFinish(true);return;}SFX.play('click',{k:1});
+  const pic=$('endPic'),cap=$('endCap'),sum=$('endSum');
+  if(pg.sum){pic.classList.add('hidden');cap.textContent='';sum.classList.remove('hidden');
+    const t=Math.round((performance.now()-runT0)/1000),mm=Math.floor(t/60),ss=String(t%60).padStart(2,'0'),row=(a,b)=>`<div class="rrow"><span>${a}</span><span>${b}</span></div>`;
+    sum.innerHTML=`<h2>작전 완수!</h2>`+row('기체',`${SHIP().name} · ${(PILOTS[selShip]||{}).name||''}`)+row('난이도',D().name)+row('점수',score.toLocaleString())+row('플레이 시간',`${mm}분 ${ss}초`)
+      +row('이번 격추',`${Math.max(0,REC.kills-runK0).toLocaleString()}기`)+row('얻은 훈장',`${Math.max(0,(REC.medals||0)-runM0)}개 · 현재 ${rankName()}`)+(q.tru?row('숨은 엔딩','달성!'):row('숨은 엔딩','붉은 매를 격추하고 최종전을 무피격으로'))
+      +`<div class="endcred"><div>SKYFANG<br><br>남방 연합 공군<br>강하늘 · 서바람 · 마철수 · 윤별 · 한누리<br><br>사령관 백두 대령<br><br>흑운 제국<br>흑운 원수 · 붉은 매 · 적광석 박사<br><br>그리고<br>끝까지 날아 준 당신<br><br>감사합니다!</div></div>`;
+    $('endNext').textContent='2바퀴째 도전';$('endSkip').textContent='타이틀로';return;}
+  sum.classList.add('hidden');pic.classList.remove('hidden');$('endNext').textContent=q.i>=q.pages.length-2?'기록 보기':'다음';$('endSkip').textContent='건너뛰기';
+  const old=$('endImg'),im=document.createElement('img');im.id='endImg';im.alt='';im.src=pg.img;if(pg.fit)im.className='fit';old.replaceWith(im);
+  cap.textContent=pg.cap;cap.style.animation='none';void cap.offsetWidth;cap.style.animation='';}
+function endFinish(cont){const q=endQ;endQ=null;if(!q)return;if(cont)q.after();else gameOver();}
+$('endNext').onclick=()=>{const q=endQ;if(!q)return;if(q.pages[q.i]&&q.pages[q.i].sum){endFinish(true);return;}endNext();};
+$('endSkip').onclick=()=>{const q=endQ;if(!q)return;if(q.pages[q.i]&&q.pages[q.i].sum){endFinish(false);return;}q.i=q.pages.length-2;endNext();};
 const HG=[['loop','회피 +1','공중제비 회피 횟수 1회 추가',p=>p.loops<6,p=>{p.loops++;updateLoopBtn();}],
   ['bomb','필살기 +1','무작위 필살기 1개 추가',p=>p.bombs.length<5,p=>{p.bombs.push(SPEC_KINDS[Math.floor(Math.random()*3)]);updateBombBtn();}],
   ['pow','화력 +1','화력 1단계 강화',p=>p.power<6,p=>{p.power++;}],
@@ -2443,7 +2488,7 @@ function saveRec(){store.set('ccb_rec',JSON.stringify(REC));}
 let achToast=null;
 function unlock(id){if(REC.ach[id])return;REC.ach[id]=Date.now();saveRec();const a=ACH.find(x=>x[0]===id);if(a){achToast={name:a[1],t:0};SFX.play('oneup',{vol:.45});}}
 
-ACH.push(['evo1','첫 진화','특성 진화 달성'],['close5','근접 격파','보스·중간보스 근접 격파 5회'],['objall','작전 목표 완수','한 난이도에서 모든 작전 목표 달성'],['whale','고래의 축복','하늘 고래의 보물 상자 5개 모두 열기']);
+ACH.push(['trueend','숨은 엔딩','붉은 매를 격추하고 최종전을 무피격으로 클리어'],['evo1','첫 진화','특성 진화 달성'],['close5','근접 격파','보스·중간보스 근접 격파 5회'],['objall','작전 목표 완수','한 난이도에서 모든 작전 목표 달성'],['whale','고래의 축복','하늘 고래의 보물 상자 5개 모두 열기']);
 let starPlan=null,starObj=null,wishFx=0;
 function starStr(){const n=REC.stars||0;return '★'.repeat(n)+'☆'.repeat(7-n);}
 function syncStars(){const t=`별 조각 ${starStr()} ${REC.stars||0}/7`;['starTag','starLine'].forEach(id=>{const el=$(id);if(el)el.textContent=t;});}
@@ -2740,7 +2785,7 @@ function unlockAudio(){Snd.init();const ac=Snd.ac;if(!ac)return;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&b.id!=='loopBtn'&&b.id!=='bombBtn')SFX.play('click',{vol:.3});},true);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Snd.ac&&state!=='pause'&&Snd.ac.state==='suspended'){const r=Snd.ac.resume();if(r&&r.catch)r.catch(()=>{});}});
 function updateAudioStatus(){const st=Snd.ac?Snd.ac.state:'none';
-  const t=(st==='running'?'소리 상태: 정상':st==='none'?'소리 상태: 아직 켜지지 않음 (화면을 눌러주세요)':'소리 상태: 대기 중 ('+st+')')+' · 효과음 '+(SFX.ready?'준비됨('+SFX.samples+')':'준비 중')+' · 빌드 1017-12';
+  const t=(st==='running'?'소리 상태: 정상':st==='none'?'소리 상태: 아직 켜지지 않음 (화면을 눌러주세요)':'소리 상태: 대기 중 ('+st+')')+' · 효과음 '+(SFX.ready?'준비됨('+SFX.samples+')':'준비 중')+' · 빌드 1017-13';
   ['audioStat','audioStat0'].forEach(id=>{const el=$(id);if(el)el.textContent=t;});}
 updateAudioStatus();
 const BEEP_WAV='data:audio/wav;base64,UklGRoQJAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YWAJAACAgIKCgX56eHl/houMhnxybnJ9i5WVi3trY2l6j56gkntkWWB1kaaqmn1fUFZwk661o39bRktpk7W/rIRYPUBhkbvKtolWNTVYj8DUwZBVLSpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2LmARicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuYBGJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGf7nYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2LmARicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5gEYnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5gEYnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC5186gZDUoQ3qz1M6lajkpQXWt0c+ocD4rP3Cozc+sdUMtPWuiyc6vekgwPGedxc2yf00zO2OXwcy0hFM2O1+SvMu2iVg5O1yNuMm4jV08O1mIs8a5kWJAPFeEr8S6lWZEPVSAqsG6mGtIPlN7pr66m29MQFF4obu6nnRQQlB0nbi5oHhURE9xmbW4onxYRk9ulbG3o39cSU9rka62pYNgS09pjaq0poZkTlBniaeypolnUVBlhqOwp4trVFJkgqCup45vV1NjgJyrppByW1RifZmpppF1XlZhepWmpZN4YVhheJKjpJR7ZFphdo+go5V9Z1xidYyeoZV/al9jc4qbn5WBbWFjcoeYnpWDcGRlcoWVnJWFcmZmcYOTmpSGdWlncYGQl5SHd2tpcYCOlZOHeW5rcX6Lk5GIe3Btcn2JkZCIfHJvc3yHjo6IfnVxdHyGjI2Hf3dzdXyEiouHgHh1dnyDiImGgHp3eHyChoeFgHx5eXyBhIWEgH17e32AgoOCgH59fX6AgYGBgH9/f38=';
