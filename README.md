@@ -3,4 +3,4 @@
 1942 스타일 종스크롤 슈팅 브라우저 게임.
 
 - 플레이: https://leetiger12a-spec.github.io/Skyfang/
-- 현재 빌드: 1017-11
+- 현재 빌드: 1017-12
