@@ -333,7 +333,7 @@ button:focus-visible{ outline:3px solid #F2A541; outline-offset:3px; }
       <p id="onCodeShow" class="oncodeshow hidden"></p>
       <div class="row"><input id="onCode" class="oncode" inputmode="numeric" maxlength="6" placeholder="코드 6자리" autocomplete="off"><button id="onJoin" class="ghost coopbtn">참가하기</button></div>
       <p id="onStat" class="best"></p>
-      <ul class="how"><li>1P(방장): '방 만들기'를 누르고 화면의 코드 6자리를 2P에게 알려주세요</li><li>2P: 코드를 입력하고 '참가하기'를 누르면 바로 출격합니다</li><li>같은 와이파이에서 가장 잘 연결됩니다</li><li>2P는 맞아도 목숨이 줄지 않고, 사격만 합니다</li></ul>
+      <ul class="how"><li>1P(방장): '방 만들기'를 누르고 화면의 코드 6자리를 2P에게 알려주세요</li><li>2P: 코드를 입력하고 '참가하기'를 누르면 바로 출격합니다</li><li>같은 와이파이에서 가장 잘 연결됩니다</li><li>2P도 맞으면 격추됩니다. 팀 목숨 1개를 쓰고 3초 뒤 복귀해요</li></ul>
       <button id="onDiag" class="ghost">연결 진단</button>
       <button id="onBack" class="ghost">돌아가기</button>
     </div>
@@ -873,7 +873,7 @@ function resetGame(){
   startStage();
 }
 function startStage(){
-  thiefDone=false;thiefObj=null;starObj=null;starPlan=(!rush&&!daily&&!finalRound)?{t:rand(18,40)}:null;whale=null;if(player)player.gearSave=gearSet()?1:0;whalePlan=(!rush&&!daily&&!finalRound&&!netRole&&stageNum>=2&&(!(REC.whaleSeen>0)||Math.random()<.15))?{t:rand(20,32)}:null;
+  thiefDone=false;thiefObj=null;starObj=null;starPlan=(!rush&&!daily&&!finalRound)?{t:rand(18,40)}:null;whale=null;if(player)player.gearSave=gearSet()?1:0;if(p2&&p2.alive===false)p2Revive();whalePlan=(!rush&&!daily&&!finalRound&&!netRole&&stageNum>=2&&(!(REC.whaleSeen>0)||Math.random()<.15))?{t:rand(20,32)}:null;
   theme=THEMES[(stageNum-1)%THEMES.length]; diff=1+(stageNum-1)*.28;
   spawnT=2.2;redT=11;bomberT=14;shipT=5;
   phase=0;phaseT=0;mid=null;special=null;warn=null;callout=null;
@@ -2466,6 +2466,7 @@ let coop=false,p2=null,drag2=null;const keys2={};
 const NEXT_SHIP={a:'b',b:'c',c:'d',d:'e',e:'a'};
 function makeP2(){link=0;linkCut=null;const k=NEXT_SHIP[selShip],S=SHIPS[k];p2={k,key:S.key,wp:S.wp,spd:S.spd,hit:S.hit,x:W/2+60,y:H+30,tx:W/2+60,ty:H-110,power:player?player.power:1,esc:0,inv:2.5,loop:0,alive:true,fireT:.05,bank:0,muzzle:0,ghT:0};}
 function updateP2(dt){const q=p2;if(!q||state!=='play')return;
+  if(!q.alive){if(q.respawn>0){q.respawn-=dt;if(q.respawn<=0)p2Revive();}else if(q.respawn===-1&&lives>0){lives--;p2Revive();pop(q.x,H-140,'2P 복귀!','#7FE3FF');}return;}
   const kx=(keys2.right?1:0)-(keys2.left?1:0),ky=(keys2.down?1:0)-(keys2.up?1:0);if(kx||ky){const l=Math.hypot(kx,ky);q.tx+=kx/l*240*dt;q.ty+=ky/l*240*dt;}
   q.tx=clamp(q.tx,16,W-16);q.ty=clamp(q.ty,70,H-24);const dx=q.tx-q.x,dy=q.ty-q.y,dist=Math.hypot(dx,dy),mx=q.spd*dt;
   if(dist>mx){q.x+=dx/dist*mx;q.y+=dy/dist*mx;}else{q.x=q.tx;q.y=q.ty;}q.bank+=(clamp(dx*.05,-1,1)-q.bank)*Math.min(1,dt*10);
@@ -2474,8 +2475,10 @@ function updateP2(dt){const q=p2;if(!q||state!=='play')return;
   for(const it of items){if(it.got)continue;const ix=it.x-q.x,iy=it.y-q.y;if(ix*ix+iy*iy<22*22){it.got=true;takeItem(it);if(it.k==='P')q.power=Math.min(6,q.power+1);}}
   if(q.inv<=0){for(const b of eB){if(b.hit)continue;const bx=b.x-q.x,by=b.y-q.y;if(bx*bx+by*by<((b.big?2:0)+HBR()*q.hit)**2){b.hit=true;p2Hit();break;}}
     if(q.inv<=0)for(const e of enemies){if(e.dead||e.thief||e.type==='boss'||e.type==='mid')continue;if(hitTest(e,q.x,q.y,5)){damage(e,e.type==='fighter'?99:6);p2Hit();break;}}}}
-function p2Hit(){const q=p2;q.inv=2;q.power=Math.max(1,q.power-1);explodeLite(q.x,q.y,1);pop(q.x,q.y-30,'2P 괜찮아!','#7FE3FF');SFX.play('hit',{rate:.8,vol:.5});}
-function drawP2(){const q=p2;if(!q||!coop||state==='title')return;if(q.inv>0&&Math.floor(T*14)%2)return;
+function p2Hit(){const q=p2;if(!q.alive||q.inv>0)return;q.alive=false;q.power=Math.max(1,q.power-1);explode(q.x,q.y,2.4);Snd.die();redFlash=Math.max(redFlash,.4);vib([120,50,80],true);
+  if(lives>0){lives--;q.respawn=3;pop(q.x,q.y-30,'2P 격추! 3초 뒤 복귀','#FF7A5A');}else{q.respawn=-1;pop(q.x,q.y-30,'2P 격추 · 남은 목숨 없음','#FF7A5A');}}
+function p2Revive(){const q=p2;q.alive=true;q.respawn=0;q.inv=2.5;q.x=q.tx=clamp(player&&player.alive?player.x+60:W/2+60,16,W-16);q.y=H+30;q.ty=H-110;}
+function drawP2(){const q=p2;if(!q||!coop||state==='title')return;if(q.alive===false){txt(q.respawn>0?`2P 복귀 ${Math.ceil(q.respawn)}`:'2P 대기 · 목숨 없음',W/2,H-128,12,'#7FE3FF','center',FONT_D);return;}if(q.inv>0&&Math.floor(T*14)%2)return;
   drawShadow(q.key,q.x+16,q.y+30,0,.7);drawPlane(q.power>=6&&SPR[q.key+'_max']?q.key+'_max':q.key,q.x,q.y,0,1-Math.abs(q.bank)*.22,1,q.key==='player'?PROPS.player:null,false);
   if(q.muzzle>0){ctx.globalCompositeOperation='lighter';blit(SPR.glow,q.x,q.y-20,12,.9);ctx.globalCompositeOperation='source-over';}
   ctx.strokeStyle='rgba(127,227,255,.75)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(q.x,q.y,26,0,TAU);ctx.stroke();
@@ -2562,7 +2565,7 @@ function netHostTick(){if(netRole!=='host'||!netConn||!player)return;const n=per
     const rm=[];for(const id of sent)if(!cur.has(id))rm.push(id);sent.clear();cur.forEach(id=>sent.add(id));return[nw,rm,fix];};
   const S={t:'S',st:state,ti:themeIdx(),sel:selShip,pt:REC.skin==='mine'?((REC.paint||{})[selShip]||null):null,lk:Math.round(link),sk:REC.skin||'base',mu:Music.cur||'',
     g:[score,lives,stageNum,combo,comboT,stGraze,medal,fever,od,odT,rg,plv,pxp,whiteFlash,redFlash,lightning,clearT,phase,phaseT,finalRound?1:0,wishFx,maxCombo],
-    pl:cl(player,0),p2:p2?{inv:r2(p2.inv),power:p2.power}:null,es:cl(escorts,0),en,eb:trk(eB,sentE),pb:trk(pB,sentP),
+    pl:cl(player,0),p2:p2?{inv:r2(p2.inv),power:p2.power,al:p2.alive===false?0:1,rs:r2(p2.respawn||0)}:null,es:cl(escorts,0),en,eb:trk(eB,sentE),pb:trk(pB,sentP),
     o:cl({linkCut,banner,warn,callout,cutin,clearInfo,lvMsg,achToast,gimNote,gim,wind,ev,special,strikes,lasers,allies,rearWarn,pops,items,starObj},0),fx:fxQ.splice(0),sf:sfxQ.splice(0)};
   let j;try{j=JSON.stringify(S);}catch(e){return;}netBytes+=j.length;if(n-netBytesT>1000){netKBs=Math.round(netBytes/1024*1000/(n-netBytesT));netBytes=0;netBytesT=n;}try{netConn.send(j);}catch(e){}}
 // ---- guest: apply snapshot
@@ -2573,7 +2576,7 @@ function netOnGuestData(d){if(typeof d!=='string')return;let S;try{S=JSON.parse(
   if(typeof S.ti==='number'&&THEMES[S.ti]&&theme!==THEMES[S.ti]){theme=THEMES[S.ti];try{applyCamo();}catch(e){}}
   if(S.mu&&S.mu!==Music.cur&&BGM_SRC[S.mu])Music.play(S.mu);
   const g=S.g||[];[score,lives,stageNum,combo,comboT,stGraze,medal,fever,od,odT,rg,plv,pxp,whiteFlash,redFlash,lightning,clearT,phase,phaseT]=g;finalRound=!!g[19];wishFx=g[20]||0;maxCombo=g[21]||0;
-  if(S.pl)player=S.pl;if(S.p2&&p2){p2.inv=S.p2.inv;p2.power=S.p2.power;}if(Array.isArray(S.es))S.es.forEach((e,i)=>{if(escorts[i]&&e){escorts[i].x=e.x;escorts[i].y=e.y;}});
+  if(S.pl)player=S.pl;if(S.p2&&p2){p2.inv=S.p2.inv;p2.power=S.p2.power;p2.alive=S.p2.al!==0;p2.respawn=S.p2.rs||0;}if(Array.isArray(S.es))S.es.forEach((e,i)=>{if(escorts[i]&&e){escorts[i].x=e.x;escorts[i].y=e.y;}});
   const ne=[];for(const e of S.en||[]){if(e.dk)e.def=MIDDEF.find(m=>m.key===e.dk)||null;const pv=enPrev.get(e._i);if(pv){const dt=Math.max(.02,(now-pv.t)/1000);e.vx=clamp((e.x-pv.x)/dt,-600,600);e.vy=clamp((e.y-pv.y)/dt,-600,600);}else{e.vx=0;e.vy=0;}
     enPrev.set(e._i,{x:e.x,y:e.y,t:now});ne.push(e);}
   if(enPrev.size>400){const live=new Set(ne.map(e=>e._i));for(const k of enPrev.keys())if(!live.has(k))enPrev.delete(k);}
@@ -2729,7 +2732,7 @@ function unlockAudio(){Snd.init();const ac=Snd.ac;if(!ac)return;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&b.id!=='loopBtn'&&b.id!=='bombBtn')SFX.play('click',{vol:.3});},true);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Snd.ac&&state!=='pause'&&Snd.ac.state==='suspended'){const r=Snd.ac.resume();if(r&&r.catch)r.catch(()=>{});}});
 function updateAudioStatus(){const st=Snd.ac?Snd.ac.state:'none';
-  const t=(st==='running'?'소리 상태: 정상':st==='none'?'소리 상태: 아직 켜지지 않음 (화면을 눌러주세요)':'소리 상태: 대기 중 ('+st+')')+' · 효과음 '+(SFX.ready?'준비됨('+SFX.samples+')':'준비 중')+' · 빌드 1017-8';
+  const t=(st==='running'?'소리 상태: 정상':st==='none'?'소리 상태: 아직 켜지지 않음 (화면을 눌러주세요)':'소리 상태: 대기 중 ('+st+')')+' · 효과음 '+(SFX.ready?'준비됨('+SFX.samples+')':'준비 중')+' · 빌드 1017-9';
   ['audioStat','audioStat0'].forEach(id=>{const el=$(id);if(el)el.textContent=t;});}
 updateAudioStatus();
 const BEEP_WAV='data:audio/wav;base64,UklGRoQJAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YWAJAACAgIKCgX56eHl/houMhnxybnJ9i5WVi3trY2l6j56gkntkWWB1kaaqmn1fUFZwk661o39bRktpk7W/rIRYPUBhkbvKtolWNTVYj8DUwZBVLSpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2LmARicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuYBGJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGf7nYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2LmARicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5gEYnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5gEYnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC5186gZDUoQ3qz1M6lajkpQXWt0c+ocD4rP3Cozc+sdUMtPWuiyc6vekgwPGedxc2yf00zO2OXwcy0hFM2O1+SvMu2iVg5O1yNuMm4jV08O1mIs8a5kWJAPFeEr8S6lWZEPVSAqsG6mGtIPlN7pr66m29MQFF4obu6nnRQQlB0nbi5oHhURE9xmbW4onxYRk9ulbG3o39cSU9rka62pYNgS09pjaq0poZkTlBniaeypolnUVBlhqOwp4trVFJkgqCup45vV1NjgJyrppByW1RifZmpppF1XlZhepWmpZN4YVhheJKjpJR7ZFphdo+go5V9Z1xidYyeoZV/al9jc4qbn5WBbWFjcoeYnpWDcGRlcoWVnJWFcmZmcYOTmpSGdWlncYGQl5SHd2tpcYCOlZOHeW5rcX6Lk5GIe3Btcn2JkZCIfHJvc3yHjo6IfnVxdHyGjI2Hf3dzdXyEiouHgHh1dnyDiImGgHp3eHyChoeFgHx5eXyBhIWEgH17e32AgoOCgH59fX6AgYGBgH9/f38=';
