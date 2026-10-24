@@ -148,6 +148,8 @@ h2{ font-family:"Black Han Sans",sans-serif; font-weight:400; margin:0; font-siz
 #netBar.hidden{ display:none; }
 .nsteps{ list-style:none; margin:0; padding:2cqw 3.5cqw; font-size:3.3cqw; line-height:1.45; background:var(--shade); border-radius:10px; width:86cqw; text-align:left; }
 .nsteps.hidden{ display:none; }
+.nlog{ width:88cqw; max-width:440px; } .nlog.hidden{ display:none; }
+.nlog pre{ margin:0 0 1.5cqw; max-height:40cqh; overflow:auto; text-align:left; white-space:pre-wrap; word-break:break-all; font-size:2.9cqw; line-height:1.4; padding:2cqw 3cqw; background:var(--shade); border-radius:10px; }
 .nsteps li{ display:flex; gap:.5em; align-items:baseline; }
 .nsteps .ic{ flex:0 0 1.2em; text-align:center; font-weight:bold; }
 .nsteps .s0 .ic{ color:#6E8A99; } .nsteps .s1 .ic{ color:#FFD23F; } .nsteps .s2 .ic{ color:#9EE07A; } .nsteps .s3 .ic{ color:#FF7A6B; }
@@ -382,7 +384,8 @@ button:focus-visible{ outline:3px solid #F2A541; outline-offset:3px; }
       <p id="onStat" class="best"></p>
       <ul id="onSteps" class="nsteps hidden"></ul>
       <ul class="how"><li>1P(방장): '방 만들기'를 누르고 화면의 코드 6자리를 2P에게 알려주세요</li><li>2P: 코드를 입력하고 '참가하기'를 누르면 바로 출격합니다</li><li>같은 와이파이에서 가장 잘 연결됩니다</li><li>2P도 맞으면 격추됩니다. 팀 목숨 1개를 쓰고 3초 뒤 복귀해요</li></ul>
-      <button id="onDiag" class="ghost">연결 진단</button>
+      <div class="row"><button id="onDiag" class="ghost">연결 진단</button><button id="onLogBtn" class="ghost">접속 기록</button></div>
+      <div id="onLogBox" class="nlog hidden"><pre id="onLog"></pre><div class="row"><button id="onLogCopy" class="ghost">기록 복사</button><button id="onLogClr" class="ghost">기록 지우기</button></div></div>
       <button id="onBack" class="ghost">돌아가기</button>
     </div>
     <div id="armory" class="screen hidden">
@@ -2457,7 +2460,7 @@ cvs.addEventListener('pointerdown',e=>{Snd.init();if(state==='netguest'){if(gDra
   if(state!=='play'||!player)return;const g=toGame(e);
   if(coop&&p2&&netRole!=='host'){const want2=g.x>=W/2;if((want2&&!drag2)||(!want2&&drag&&!drag2)||(!player.alive&&!drag2)){drag2={id:e.pointerId,fx:g.x,fy:g.y,px:p2.tx,py:p2.ty};try{cvs.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();return;}}
   if(!player.alive||drag)return;drag={id:e.pointerId,fx:g.x,fy:g.y,px:player.tx,py:player.ty};try{cvs.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
-cvs.addEventListener('pointermove',e=>{if(state==='netguest'){if(!gDrag||e.pointerId!==gDrag.id||!p2)return;const g=toGame(e),K=1.25;gFinger=g;p2.tx=clamp(gDrag.px+(g.x-gDrag.fx)*K,16,W-16);p2.ty=clamp(gDrag.py+(g.y-gDrag.fy)*K,70,H-24);const n=performance.now();if(n-netLastMove<30||!netConn)return;netLastMove=n;try{netConn.send({t:'tg',x:Math.round(p2.tx),y:Math.round(p2.ty)});}catch(_){}return;}
+cvs.addEventListener('pointermove',e=>{if(state==='netguest'){if(!gDrag||e.pointerId!==gDrag.id||!p2)return;const g=toGame(e),K=1.25;gFinger=g;p2.tx=clamp(gDrag.px+(g.x-gDrag.fx)*K,16,W-16);p2.ty=clamp(gDrag.py+(g.y-gDrag.fy)*K,70,H-24);const n=performance.now();if(n-netLastMove<(netConn&&netConn._relay?60:30)||!netConn)return;netLastMove=n;try{netConn.send({t:'tg',x:Math.round(p2.tx),y:Math.round(p2.ty)});}catch(_){}return;}
   if(drag2&&p2&&e.pointerId===drag2.id){const g=toGame(e),K=1.25;p2.tx=clamp(drag2.px+(g.x-drag2.fx)*K,16,W-16);p2.ty=clamp(drag2.py+(g.y-drag2.fy)*K,70,H-24);return;}
   if(!drag||e.pointerId!==drag.id||!player.alive)return;const g=toGame(e),K=1.25;
   const nx=drag.px+(g.x-drag.fx)*K,ny=drag.py+(g.y-drag.fy)*K;player.tx=clamp(nx,16,W-16);player.ty=clamp(ny,70,H-24);
@@ -2650,7 +2653,7 @@ let peerLoad=null;
 function loadPeer(){if(typeof Peer==='function')return Promise.resolve(true);if(!peerLoad)peerLoad=new Promise(res=>{const tc=document.createElement('script');tc.src='js/turn-config.js';document.head.appendChild(tc);const sc=document.createElement('script');sc.src='js/peerjs.min.js';sc.onload=()=>res(typeof Peer==='function');sc.onerror=()=>{peerLoad=null;res(false);};document.head.appendChild(sc);});return peerLoad;}
 const NET_FAIL='두 기기 사이 연결이 막혔어요(통신사·공유기 차단). ① 두 폰을 같은 와이파이 이름(5G/2.4G 중 같은 것)에 연결하거나 ② 1P 폰의 핫스팟을 켜고 2P 폰을 그 핫스팟에 연결해 다시 시도해 주세요. 아래 \'연결 진단\'으로 원인을 확인할 수 있어요.';
 function netWatch(c,onCheck){let n=0;const go=()=>{const pc=c.peerConnection;if(!pc){if(++n<60)setTimeout(go,250);return;}
-  pc.addEventListener('iceconnectionstatechange',()=>{const st=pc.iceConnectionState;if(st==='checking'&&onCheck)onCheck();if((st==='failed'||st==='disconnected')&&netConn!==c)netMsg(NET_FAIL);});};go();netProbe(c);}
+  pc.addEventListener('iceconnectionstatechange',()=>{const st=pc.iceConnectionState;netEv('ICE '+st);if(st==='failed'&&c._onFail)c._onFail();if(st==='checking'&&onCheck)onCheck();if((st==='failed'||st==='disconnected')&&netConn!==c)netMsg(NET_FAIL);});};go();netProbe(c);}
 async function netDiag(){const el=$('onDiag');if(el)el.disabled=true;netMsg('연결 진단 중… (약 6초)');
   try{const extra=Array.isArray(window.SKY_TURN)?window.SKY_TURN:[];const pc=new RTCPeerConnection({iceServers:ICE_BASE.concat(extra)});const got={host:0,srflx:0,relay:0};
     pc.onicecandidate=e=>{const c=e.candidate&&e.candidate.candidate;if(!c)return;const m=/ typ (\w+)/.exec(c);if(m&&got[m[1]]!=null)got[m[1]]++;};
@@ -2658,11 +2661,24 @@ async function netDiag(){const el=$('onDiag');if(el)el.disabled=true;netMsg('연
     const ok=v=>v?'✓':'✗';netMsg(`진단 결과 · 내 기기 ${ok(got.host)} · 인터넷 주소 확인(STUN) ${ok(got.srflx)} · 중계 서버(TURN) ${ok(got.relay)} — `+(got.relay?'중계 서버에 닿습니다. 상대 기기도 진단해 보세요.':got.srflx?'중계 서버에 닿지 않아요. 같은 와이파이에서는 되지만 LTE끼리는 안 될 수 있어요.':'인터넷 연결을 확인해 주세요.'));}
   catch(e){netMsg('진단 실패: 이 브라우저는 실시간 연결을 지원하지 않아요');}finally{if(el)el.disabled=false;}}
 // ---- 단계별 연결 진단 (실제 접속 과정에서 각 단계를 ✓/✗로 표시)
-const NSTEP={host:[['mod','연결 모듈 준비'],['srv','연결 서버 접속'],['room','방 코드 발급'],['knock','2P 접속 신호'],['lc','내 기기 경로 수집'],['rc','상대 경로 수신'],['ice','두 기기 직접 연결'],['dc','데이터 통로 열림'],['data','게임 화면 전송']],
-  guest:[['mod','연결 모듈 준비'],['srv','연결 서버 접속'],['room','방 찾기 · 1P 응답'],['lc','내 기기 경로 수집'],['rc','상대 경로 수신'],['ice','두 기기 직접 연결'],['dc','데이터 통로 열림'],['data','게임 화면 수신']]};
-const BUILD='1017-26';const NS_IC=['○','…','✓','✗'];let netSteps=null,netPath='',netRtt=null;
-function stepsInit(role){netSteps={role,s:{}};netPath='';netRtt=null;NSTEP[role].forEach(([k])=>netSteps.s[k]={st:0,d:''});stepsDraw();}
-function stp(k,st,d){const o=netSteps&&netSteps.s[k];if(!o||(o.st===2&&st===1))return;if(o.st===st&&(d==null||o.d===d))return;o.st=st;if(d!=null)o.d=d;stepsDraw();}
+const NSTEP={host:[['mod','연결 모듈 준비'],['srv','연결 서버 접속'],['room','방 코드 발급'],['knock','2P 접속 신호'],['lc','내 기기 경로 수집'],['rc','상대 경로 수신'],['ice','두 기기 직접 연결'],['rl','인터넷 중계 대기 (직접 연결이 막힐 때)'],['dc','데이터 통로 열림'],['data','게임 화면 전송']],
+  guest:[['mod','연결 모듈 준비'],['srv','연결 서버 접속'],['room','방 찾기 · 1P 응답'],['lc','내 기기 경로 수집'],['rc','상대 경로 수신'],['ice','두 기기 직접 연결'],['rl','인터넷 중계 (직접 연결이 막힐 때)'],['dc','데이터 통로 열림'],['data','게임 화면 수신']]};
+const BUILD='1017-27';const NS_IC=['○','…','✓','✗'];let netSteps=null,netPath='',netRtt=null;
+function stepsInit(role){netLogNew(role);netSteps={role,s:{}};netPath='';netRtt=null;NSTEP[role].forEach(([k])=>netSteps.s[k]={st:0,d:''});stepsDraw();}
+function stp(k,st,d){const o=netSteps&&netSteps.s[k];if(!o||(o.st===2&&st===1))return;if(o.st===st&&(d==null||o.d===d))return;o.st=st;if(d!=null)o.d=d;stepsDraw();netLogSave();}
+// ---- 접속 기록: 시도마다 단계 결과·이벤트를 기기에 저장 (최근 10회)
+let netLogCur=null,netLogT=0;
+function netLogLoad(){try{const a=JSON.parse(store.get('ccb_netlog','[]'));return Array.isArray(a)?a:[];}catch(e){return[];}}
+function netLogNew(role){const ua=navigator.userAgent,br=/KAKAOTALK/i.test(ua)?'카톡':/SamsungBrowser/.test(ua)?'삼성인터넷':/CriOS|Chrome/.test(ua)?'크롬':/Safari/.test(ua)?'사파리':'기타';
+  const c=navigator.connection,nt=c?(c.type||'')+(c.effectiveType?'/'+c.effectiveType:''):'';
+  netLogCur={at:new Date().toLocaleString('ko-KR',{hour12:false}),b:BUILD,role,br,nt,ev:[],res:'진행 중'};const a=netLogLoad();a.push(netLogCur);while(a.length>10)a.shift();try{localStorage.setItem('ccb_netlog',JSON.stringify(a));}catch(e){}}
+function netEv(t){if(!netLogCur)return;const s0=netLogCur._t0||(netLogCur._t0=performance.now());netLogCur.ev.push(((performance.now()-s0)/1000).toFixed(1)+'s '+t);if(netLogCur.ev.length>60)netLogCur.ev.splice(20,1);netLogSave(true);}
+function netLogSave(now){if(!netLogCur)return;const t=performance.now();if(!now&&t-netLogT<400){clearTimeout(netLogSave._to);netLogSave._to=setTimeout(()=>netLogSave(true),450);return;}netLogT=t;
+  if(netSteps){netLogCur.st=NSTEP[netSteps.role].map(([k,l],i)=>{const o=netSteps.s[k];return NS_IC[o.st]+(i+1)+'.'+l.split(' (')[0]+(o.d?' — '+o.d:'');});
+    const S=netSteps.s;netLogCur.res=S.data&&S.data.st===2?(netConn&&netConn._relay?'성공(인터넷 중계)':'성공(직접 연결)'):Object.values(S).some(o=>o.st===3)&&!(S.rl&&S.rl.st===1)?'실패':'진행 중';}
+  const a=netLogLoad();const i=a.findIndex(x=>x.at===netLogCur.at&&x.role===netLogCur.role);if(i>=0)a[i]=netLogCur;else a.push(netLogCur);try{localStorage.setItem('ccb_netlog',JSON.stringify(a));}catch(e){}if($('onLogBox')&&!$('onLogBox').classList.contains('hidden'))netLogShow();}
+function netLogText(){const a=netLogLoad();if(!a.length)return'아직 접속 기록이 없어요';return a.slice().reverse().map((x,n)=>`[${n+1}] ${x.at} · ${x.role==='host'?'1P':'2P'} · ${x.br}${x.nt?' · '+x.nt:''} · 빌드 ${x.b}\n결과: ${x.res}\n`+(x.st||[]).join('\n')+(x.ev&&x.ev.length?'\n— 이벤트 —\n'+x.ev.join('\n'):'')).join('\n\n');}
+function netLogShow(){const e=$('onLog');if(e)e.textContent=netLogText();}
 function stepGuard(k,ms,d){const ses=netSteps;setTimeout(()=>{if(netSteps===ses&&ses.s[k]&&ses.s[k].st<2)stp(k,3,d);},ms);}
 function stepsDraw(){const el=$('onSteps');if(!el)return;if(!netSteps){el.classList.add('hidden');return;}el.classList.remove('hidden');
   const ua=navigator.userAgent,br=/KAKAOTALK/i.test(ua)?'카카오톡 안 브라우저(크롬 권장)':/SamsungBrowser/.test(ua)?'삼성 인터넷':/Chrome/.test(ua)?'크롬':'기타';el.innerHTML=`<li class="s0" style="opacity:.8"><span class="ic">ⓘ</span><span>빌드 ${BUILD} · ${netSteps.role==='host'?'1P':'2P'} · ${br}</span></li>`+NSTEP[netSteps.role].map(([k,l],i)=>{const o=netSteps.s[k];return`<li class="s${o.st}"><span class="ic">${NS_IC[o.st]}</span><span>${i+1}. ${l}${o.d?` <span class="dt">— ${hesc(o.d)}</span>`:''}</span></li>`;}).join('');}
@@ -2686,23 +2702,58 @@ async function netProbeOnce(pc,ses,role){let r;try{r=await pc.getStats();}catch(
   if(st==='connected'||st==='completed'){const lc=pair&&by[pair.localCandidateId],rc=pair&&by[pair.remoteCandidateId];
     netPath=!lc?'연결됨':(lc.candidateType==='relay'||(rc&&rc.candidateType==='relay'))?'중계 서버 경유':(lc.candidateType==='host'&&rc&&rc.candidateType==='host')?'내부망 직결':'인터넷 직결';
     if(pair&&pair.currentRoundTripTime!=null)netRtt=Math.round(pair.currentRoundTripTime*1000);stp('ice',2,netPath+(netRtt!=null?` · 왕복 ${netRtt}ms`:''));}
-  else if(st==='failed'){stp('ice',3,iceHint(L,R));if(!candN(R))stp('rc',3,'상대 경로를 하나도 못 받음');stp('dc',3,'직접 연결 실패로 열리지 않음');}
+  else if(st==='failed'){netEv('경로 내 '+candTxt(L)+' / 상대 '+candTxt(R)+' / 같은망 '+(L.same==null?'?':L.same?'예':'아니오'));stp('ice',3,iceHint(L,R));if(!candN(R))stp('rc',3,'상대 경로를 하나도 못 받음');stp('dc',3,'직접 연결 실패로 열리지 않음');}
   else if(st==='disconnected'&&netSteps.s.ice.st===2)stp('ice',3,'연결이 끊김 · 신호 약함 또는 와이파이 변경');
   else if(st==='checking')stp('ice',1,'통로 시험 중…');}
-function netSrvErr(e){const t=e&&e.type;if(t==='network'||t==='server-error'||t==='socket-error'||t==='socket-closed')stp('srv',3,'연결 서버에 닿지 못함 · 인터넷/데이터 확인');else if(t==='peer-unavailable'){stp('room',3,'그 코드의 방이 없음 · 1P 화면의 코드 확인');['lc','rc','ice'].forEach(k=>{if(netSteps&&netSteps.s[k].st<2){netSteps.s[k].st=0;netSteps.s[k].d='';}});stepsDraw();}else if(t==='webrtc'||t==='negotiation-failed')stp('ice',3,'기기 간 협상 실패');}
+function netSrvErr(e){const t=e&&e.type;netEv('오류 '+(t||'?')+(e&&e.message?' '+String(e.message).slice(0,60):''));if(t==='network'||t==='server-error'||t==='socket-error'||t==='socket-closed')stp('srv',3,'연결 서버에 닿지 못함 · 인터넷/데이터 확인');else if(t==='peer-unavailable'){stp('room',3,'그 코드의 방이 없음 · 1P 화면의 코드 확인');['lc','rc','ice'].forEach(k=>{if(netSteps&&netSteps.s[k].st<2){netSteps.s[k].st=0;netSteps.s[k].d='';}});stepsDraw();}else if(t==='webrtc'||t==='negotiation-failed')stp('ice',3,'기기 간 협상 실패');}
 function netMsg(t){const el=$('onStat');if(el)el.textContent=t;}
 function netErrText(e){const t=e&&e.type;return t==='peer-unavailable'?'그 코드의 방이 없어요. 코드를 다시 확인해 주세요':t==='browser-incompatible'?'이 브라우저는 온라인 협동을 지원하지 않아요':(t==='webrtc'||t==='negotiation-failed')?'기기끼리 연결이 막혔어요(통신망·방화벽). 두 폰을 같은 와이파이에 연결하고 다시 시도해 주세요':(t==='network'||t==='server-error'||t==='socket-error'||t==='socket-closed')?'연결 서버에 닿지 못했어요. 이 주소(Claude 페이지)에서는 쓸 수 없고, GitHub 주소에서 이용할 수 있어요':'연결 오류 ('+(t||'알 수 없음')+')';}
-function netClose(){const c=netConn,p=netPeer,wasG=netRole==='guest';netConn=null;netPeer=null;netRole=null;try{c&&c.close();}catch(e){}try{p&&p.destroy();}catch(e){}$('netBar').classList.add('hidden');$('onCodeShow').classList.add('hidden');
+function netClose(){relayClose();const c=netConn,p=netPeer,wasG=netRole==='guest';netConn=null;netPeer=null;netRole=null;try{c&&c.close();}catch(e){}try{p&&p.destroy();}catch(e){}$('netBar').classList.add('hidden');$('onCodeShow').classList.add('hidden');
   if(wasG){if(netSavedSel)selShip=netSavedSel;coop=false;p2=null;player=null;enemies=[];eB=[];pB=[];items=[];eMap.clear();pMap.clear();enPrev.clear();}}
 const ICE_BASE=[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302','stun:stun2.l.google.com:19302']},{urls:'stun:stun.cloudflare.com:3478'},
   {urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478','turn:eu-0.turn.peerjs.com:3478?transport=tcp','turn:us-0.turn.peerjs.com:3478?transport=tcp'],username:'peerjs',credential:'peerjsp'}];
+// ---- 인터넷 중계 모드: 가입이 필요 없는 공개 MQTT 중계소를 거쳐 데이터를 주고받음 (직접 연결이 막힐 때 자동 사용)
+const RELAYS0=['wss://broker.emqx.io:8084/mqtt','wss://broker.hivemq.com:8884/mqtt','wss://test.mosquitto.org:8081/mqtt'];
+const RL_LIST=()=>Array.isArray(window.SKY_RELAYS)&&window.SKY_RELAYS.length?window.SKY_RELAYS:RELAYS0,RL_TOP='skyfang1/';let relayCli=[];
+function mqtt(url,onMsg,onUp,onDown){const te=new TextEncoder(),td=new TextDecoder();let ws,buf=new Uint8Array(0),up=false,ping=null,dead=false;
+  const str=t=>{const b=te.encode(t);const o=new Uint8Array(2+b.length);o[0]=b.length>>8;o[1]=b.length&255;o.set(b,2);return o;};
+  const pkt=(h,...parts)=>{let n=0;parts.forEach(x=>n+=x.length);const L=[];let x=n;do{let d=x%128;x=Math.floor(x/128);if(x>0)d|=128;L.push(d);}while(x>0);const o=new Uint8Array(1+L.length+n);o[0]=h;o.set(L,1);let i=1+L.length;parts.forEach(q=>{o.set(q,i);i+=q.length;});return o;};
+  const send=b=>{try{if(ws&&ws.readyState===1)ws.send(b);}catch(e){}};
+  const cli={url,get up(){return up;},sub(t){send(pkt(0x82,new Uint8Array([0,1]),str(t),new Uint8Array([0])));},pub(t,m){send(pkt(0x30,str(t),te.encode(m)));},
+    end(){dead=true;clearInterval(ping);try{send(new Uint8Array([0xE0,0]));ws&&ws.close();}catch(e){}},buffered(){return ws?ws.bufferedAmount:0;}};
+  try{ws=new WebSocket(url,'mqtt');}catch(e){setTimeout(()=>onDown&&onDown('열기 실패'),0);return cli;}ws.binaryType='arraybuffer';
+  ws.onopen=()=>{const id='sf'+Math.random().toString(36).slice(2,12);send(pkt(0x10,str('MQTT'),new Uint8Array([4,2,0,30]),str(id)));};
+  ws.onmessage=ev=>{const d=new Uint8Array(ev.data),nb=new Uint8Array(buf.length+d.length);nb.set(buf);nb.set(d,buf.length);buf=nb;
+    for(;;){if(buf.length<2)break;let m=1,v=0,i=1,b;do{if(i>=buf.length)return;b=buf[i++];v+=(b&127)*m;m*=128;}while(b&128);if(buf.length<i+v)break;
+      const h=buf[0],body=buf.subarray(i,i+v);buf=buf.slice(i+v);const ty=h>>4;
+      if(ty===2){if(body[1]===0){up=true;ping=setInterval(()=>send(new Uint8Array([0xC0,0])),20000);onUp&&onUp(cli);}else{dead=true;ws.close();onDown&&onDown('접속 거부 '+body[1]);}}
+      else if(ty===3){const tl=(body[0]<<8)|body[1],t=td.decode(body.subarray(2,2+tl)),qos=(h>>1)&3,off=2+tl+(qos?2:0);onMsg&&onMsg(t,td.decode(body.subarray(off)));}}};
+  ws.onerror=()=>{};ws.onclose=()=>{clearInterval(ping);const was=up;up=false;if(!dead)onDown&&onDown(was?'끊김':'연결 안 됨');};return cli;}
+function relayConn(cli,pubT){const h={};return{_relay:true,url:cli.url,send(d){if(cli.buffered()>200000)return;cli.pub(pubT,typeof d==='string'?d:JSON.stringify(d));},close(){try{cli.pub(pubT,'{"t":"bye"}');}catch(e){}setTimeout(()=>cli.end(),50);},on(ev,f){h[ev]=f;},_h:h};}
+const rlName=u=>u.replace(/^wss:\/\/(broker\.|test\.)?/,'').split(/[.:]/)[0];
+function relayHostListen(code){relayClose();let alive=0,tried=0;
+  RL_LIST().forEach(url=>{const cli=mqtt(url,(t,m)=>{if(cli._on){cli._on(t,m);return;}if(netConn)return;if(t!==RL_TOP+code+'/hello')return;const sid=String(m).replace(/[^a-z0-9]/gi,'').slice(0,16);if(!sid)return;
+      const rc=relayConn(cli,RL_TOP+code+'/'+sid+'/d');netEv('중계 접속 받음 ('+rlName(url)+')');cli.sub(RL_TOP+code+'/'+sid+'/u');
+      cli._on=(tt,mm)=>{if(tt!==RL_TOP+code+'/'+sid+'/u')return;if(mm==='{"t":"bye"}'){if(netConn===rc){netConn=null;if(state!=='title')lvMsg={t:0,a:'2P 연결 끊김',b:'혼자 계속 진행합니다'};}return;}let d;try{d=JSON.parse(mm);}catch(e){return;}if(netConn===rc)netOnHostData(d);};
+      relayCli.filter(x=>x!==cli).forEach(x=>x.end());relayCli=[cli];rc.send('{"t":"hi"}');
+      stp('knock',2,'2P 신호 받음 (중계)');stp('rl',2,rlName(url)+' 경유');stp('dc',2);netMsg('연결 완료! (인터넷 중계)');stp('data',1,'시작 중…');netConn=rc;netRole='host';netPath='인터넷 중계';netRtt=null;sentE=new Set();sentP=new Set();SFX.play('oneup',{vol:.5});startCoop();netRole='host';},
+      c=>{alive++;c.sub(RL_TOP+code+'/hello');stp('rl',1,`대기 중 · 중계소 ${alive}곳 연결`);netEv('중계소 연결 '+rlName(url));},
+      why=>{tried++;netEv('중계소 '+rlName(url)+' '+why);if(!alive&&tried===RL_LIST().length)stp('rl',3,'공개 중계소에 하나도 닿지 않음 (통신망이 막음)');});
+    relayCli.push(cli);});}
+function relayClose(){relayCli.forEach(c=>{try{c.end();}catch(e){}});relayCli=[];}
+function relayJoin(code,onOpen){if(netConn)return;const sid=Math.random().toString(36).slice(2,12);let i=0,done=false;stp('rl',1,'공개 중계소 찾는 중…');netEv('중계 모드 시도');
+  const next=()=>{if(done||netConn)return;if(i>=RL_LIST().length){stp('rl',3,'중계소에 닿지 않거나 1P 응답 없음');netEv('중계 실패');return;}const url=RL_LIST()[i++];let to=null,got=false;
+    const cli=mqtt(url,(t,m)=>{if(t!==RL_TOP+code+'/'+sid+'/d')return;if(!got){if(done)return;got=true;clearTimeout(to);done=true;const rc=relayConn(cli,RL_TOP+code+'/'+sid+'/u');cli._rc=rc;stp('rl',2,rlName(url)+' 경유');netEv('중계 연결 성공 '+rlName(url));onOpen(rc);}
+        if(m==='{"t":"hi"}')return;if(m==='{"t":"bye"}'){netLost=true;return;}const rc=cli._rc;if(rc&&rc._h.data)rc._h.data(m);},
+      c=>{stp('rl',1,rlName(url)+' 연결 · 1P 응답 기다리는 중…');c.sub(RL_TOP+code+'/'+sid+'/d');setTimeout(()=>c.pub(RL_TOP+code+'/hello',sid),300);to=setTimeout(()=>{netEv('중계 '+rlName(url)+' 1P 응답 없음');cli.end();next();},7000);},
+      why=>{if(got){if(cli._rc&&cli._rc._h.close)cli._rc._h.close();return;}clearTimeout(to);netEv('중계소 '+rlName(url)+' '+why);next();});relayCli.push(cli);};next();}
 function newPeer(id){const extra=Array.isArray(window.SKY_TURN)?window.SKY_TURN:[],base=window.SKY_PEER_OPTS||{};
   const o={...base,config:{iceServers:ICE_BASE.concat(extra),...(base.config||{})}};return id?new Peer(id,o):new Peer(o);}
 function netHost(){if(!netAvail()){netMsg(netErrText({type:'network'}));return;}netClose();netCode=String(Math.floor(100000+Math.random()*900000));netMsg('방을 여는 중…');if(!netSteps||netSteps.role!=='host'){stepsInit('host');stp('mod',2);}
   let p;try{p=newPeer('skyfang-'+netCode);}catch(e){netMsg(netErrText({type:'network'}));stp('srv',3,'연결 시작 실패');return;}netPeer=p;stp('srv',1,'접속 중…');stepGuard('srv',12000,'12초 응답 없음 · 인터넷/데이터 확인');
-  p.on('open',()=>{stp('srv',2,'');stp('room',2,'코드 '+netCode);stp('knock',1,'2P 기다리는 중…');$('onCodeShow').textContent=netCode;$('onCodeShow').classList.remove('hidden');netMsg('2P가 이 코드를 입력하면 바로 출격합니다');});
+  p.on('open',()=>{relayHostListen(netCode);stp('srv',2,'');stp('room',2,'코드 '+netCode);stp('knock',1,'2P 기다리는 중…');$('onCodeShow').textContent=netCode;$('onCodeShow').classList.remove('hidden');netMsg('2P가 이 코드를 입력하면 바로 출격합니다');});
   p.on('error',e=>{if(e&&e.type==='unavailable-id'){netHost();return;}if(netRole==='host'&&state!=='title')return;netSrvErr(e);netMsg(netErrText(e));});
-  p.on('connection',c=>{if(netConn){try{c.close();}catch(e){}return;}netMsg('2P가 접속을 시도하는 중…');stp('knock',2,'2P 신호 받음');stepGuard('ice',25000,'25초 안에 길을 못 엶');netWatch(c);c.on('open',()=>{stp('dc',2);netMsg('연결 완료!');stp('data',1,'시작 중…');netConn=c;netRole='host';sentE=new Set();sentP=new Set();SFX.play('oneup',{vol:.5});startCoop();netRole='host';});
+  p.on('connection',c=>{if(netConn){try{c.close();}catch(e){}return;}netEv('2P 직접 연결 시도');netMsg('2P가 접속을 시도하는 중…');stp('knock',2,'2P 신호 받음');stepGuard('ice',25000,'25초 안에 길을 못 엶');netWatch(c);c.on('open',()=>{if(netConn){try{c.close();}catch(e){}return;}relayClose();stp('rl',0,'직접 연결이라 필요 없음');stp('dc',2);netMsg('연결 완료!');stp('data',1,'시작 중…');netConn=c;netRole='host';sentE=new Set();sentP=new Set();SFX.play('oneup',{vol:.5});startCoop();netRole='host';});
     c.on('data',d=>netOnHostData(d));c.on('close',()=>{if(netConn===c){netConn=null;if(state!=='title')lvMsg={t:0,a:'2P 연결 끊김',b:'혼자 계속 진행합니다'};}});});}
 function netOnHostData(d){if(!d||typeof d!=='object'||!p2)return;if(d.t==='tg'&&typeof d.x==='number'&&typeof d.y==='number'){p2.tx=clamp(d.x,16,W-16);p2.ty=clamp(d.y,70,H-24);}else if(d.t==='lk')triggerLink();else if(d.t==='pz'){if(d.on&&state==='play'){togglePause();lvMsg={t:0,a:'2P가 일시정지했어요',b:'계속하기를 누르거나 2P가 다시 누르면 재개'};$('audioStat').textContent='2P가 일시정지했어요 · 계속하기를 누르면 재개';}else if(!d.on&&state==='pause')togglePause();}else if(d.t==='p2lp')p2Loop();else if(d.t==='p2sp')p2Special();}
 function netJoin(){if(!netAvail()){netMsg(netErrText({type:'network'}));return;}const code=($('onCode').value||'').replace(/\D/g,'');if(code.length!==6){netMsg('코드 6자리를 입력해 주세요');return;}
@@ -2710,12 +2761,15 @@ function netJoin(){if(!netAvail()){netMsg(netErrText({type:'network'}));return;}
   p.on('error',e=>{if(netRole==='guest'){netLost=true;return;}netSrvErr(e);netMsg(netErrText(e));});
   p.on('open',()=>{stp('srv',2,'');stp('room',1,'방 '+code+' 찾는 중…');stepGuard('room',15000,'15초 동안 1P 응답 없음 · 1P가 방 화면에 있는지 확인');const c=p.connect('skyfang-'+code,{reliable:true});
     netMsg('통신 서버 접속 완료 · 방을 찾는 중…');netWatch(c,()=>netMsg('방을 찾았어요 · 두 기기 사이 길을 여는 중… (통신망이 다르면 10초 넘게 걸릴 수 있어요)'));
-    const to=setTimeout(()=>{if(!netConn){netMsg(NET_FAIL);if(netSteps&&netSteps.s.ice.st<2)stp('ice',3,netSteps.L?'20초 안에 길을 못 엶 · '+iceHint(netSteps.L,netSteps.R):'20초 안에 길을 못 엶');stp('dc',3,'열리지 않음');}},20000);
-    c.on('open',()=>{clearTimeout(to);stp('dc',2);netMsg('연결 완료!');stp('data',1,'1P 화면 기다리는 중…');netConn=c;netRole='guest';netLost=false;netHostSel=null;eMap.clear();pMap.clear();enPrev.clear();netSavedSel=selShip;Snd.init();Snd.engine(false);
-      enemies=[];eB=[];pB=[];items=[];parts=[];pops=[];coins=[];player=null;state='netguest';show(null);$('netBar').classList.remove('hidden');['pauseBtn','loopBtn','bombBtn'].forEach(id=>$(id).classList.remove('hidden'));});
-    c.on('data',d=>netOnGuestData(d));c.on('close',()=>{netLost=true;});});}
+    const goRelay=()=>{if(netConn||netRole==='guest'||(netSteps&&netSteps.s.room.st===3)||netPeer!==p)return;netMsg('직접 연결이 막혀서 인터넷 중계로 연결하는 중…');relayJoin(code,rc=>{if(netConn)return;try{c.close();}catch(e){}guestOpen(rc);});};
+    const rt=setTimeout(goRelay,9000);c._onFail=goRelay;
+    const to=setTimeout(()=>{if(!netConn){if(netSteps&&netSteps.s.ice.st<2)stp('ice',3,netSteps.L?'20초 안에 길을 못 엶 · '+iceHint(netSteps.L,netSteps.R):'20초 안에 길을 못 엶');if(!(netSteps&&netSteps.s.rl.st===1))netMsg(NET_FAIL);}},20000);
+    const guestOpen=cc=>{clearTimeout(to);clearTimeout(rt);if(cc!==c)relayCli=relayCli.filter(x=>x._rc===cc);else relayClose();stp('ice',cc===c?2:3,cc===c?undefined:'막힘 → 인터넷 중계로 우회');if(cc===c)stp('rl',0,'직접 연결이라 필요 없음');stp('dc',2);netMsg(cc===c?'연결 완료!':'연결 완료! (인터넷 중계 · 조금 느릴 수 있어요)');stp('data',1,'1P 화면 기다리는 중…');netConn=cc;netRole='guest';if(cc._relay){netPath='인터넷 중계';netRtt=null;}netLost=false;netHostSel=null;eMap.clear();pMap.clear();enPrev.clear();netSavedSel=selShip;Snd.init();Snd.engine(false);
+      enemies=[];eB=[];pB=[];items=[];parts=[];pops=[];coins=[];player=null;state='netguest';show(null);$('netBar').classList.remove('hidden');['pauseBtn','loopBtn','bombBtn'].forEach(id=>$(id).classList.remove('hidden'));
+      cc.on('data',d=>{if(netConn===cc)netOnGuestData(d);});cc.on('close',()=>{if(netConn===cc)netLost=true;});};
+    c.on('open',()=>{if(netConn){try{c.close();}catch(e){}return;}guestOpen(c);});});}
 // ---- host: build snapshot
-function netHostTick(){if(netRole!=='host'||!netConn||!player)return;const n=performance.now();if(n-netLastSnap<33)return;netLastSnap=n;
+function netHostTick(){if(netRole!=='host'||!netConn||!player)return;const n=performance.now();if(n-netLastSnap<(netConn._relay?90:33))return;netLastSnap=n;
   const en=[];for(const e of enemies){if(e.dead||e.gone)continue;if(!e._i)e._i=++nid;en.push(cl(e,0));}
   const trk=(arr,sent)=>{const nw=[],fix=[],cur=new Set();for(const b of arr){if(!b._i){const c=cl(b,0);b._i=++nid;c._i=b._i;nw.push(c);}else if(b.stop>0||b.wv||b.hom||b.burst!==undefined)fix.push([b._i,r2(b.x),r2(b.y),r2(b.vx||0),r2(b.vy||0)]);cur.add(b._i);}
     const rm=[];for(const id of sent)if(!cur.has(id))rm.push(id);sent.clear();cur.forEach(id=>sent.add(id));return[nw,rm,fix];};
@@ -2899,7 +2953,7 @@ function unlockAudio(){Snd.init();const ac=Snd.ac;if(!ac)return;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&b.id!=='loopBtn'&&b.id!=='bombBtn')SFX.play('click',{vol:.3});},true);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Snd.ac&&state!=='pause'&&Snd.ac.state==='suspended'){const r=Snd.ac.resume();if(r&&r.catch)r.catch(()=>{});}});
 function updateAudioStatus(){const st=Snd.ac?Snd.ac.state:'none';
-  const t=(st==='running'?'소리 상태: 정상':st==='none'?'소리 상태: 아직 켜지지 않음 (화면을 눌러주세요)':'소리 상태: 대기 중 ('+st+')')+' · 효과음 '+(SFX.ready?'준비됨('+SFX.samples+')':'준비 중')+' · 빌드 1017-26';
+  const t=(st==='running'?'소리 상태: 정상':st==='none'?'소리 상태: 아직 켜지지 않음 (화면을 눌러주세요)':'소리 상태: 대기 중 ('+st+')')+' · 효과음 '+(SFX.ready?'준비됨('+SFX.samples+')':'준비 중')+' · 빌드 1017-27';
   ['audioStat','audioStat0'].forEach(id=>{const el=$(id);if(el)el.textContent=t;});}
 updateAudioStatus();
 const BEEP_WAV='data:audio/wav;base64,UklGRoQJAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YWAJAACAgIKCgX56eHl/houMhnxybnJ9i5WVi3trY2l6j56gkntkWWB1kaaqmn1fUFZwk661o39bRktpk7W/rIRYPUBhkbvKtolWNTVYj8DUwZBVLSpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2LmARicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuYBGJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5f0YnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0Z/udjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGf7nYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2LmARicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5gEYnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC52M6hZDQmQnq019GmaTcmPnSw1dOrbzomOm+r09WwdD4mN2mm0de0ekImNGShzti5gEYnMV6by9m9hUsoLlmWyNnBi08qLFSQxdrFkFQsKk+LwdnIllkuKEuFvdnLm14xJ0aAudjOoWQ0JkJ6tNfRpmk3Jj50sNXTq286Jjpvq9PVsHQ+JjdpptHXtHpCJjRkoc7YuX9GJzFem8vZvYVLKC5ZlsjZwYtPKixUkMXaxZBULCpPi8HZyJZZLihLhb3Zy5teMSdGgLnYzqFkNCZCerTX0aZpNyY+dLDV06tvOiY6b6vT1bB0PiY3aabR17R6QiY0ZKHO2Ll/RicxXpvL2b2FSyguWZbI2cGLTyosVJDF2sWQVCwqT4vB2ciWWS4oS4W92cubXjEnRoC5186gZDUoQ3qz1M6lajkpQXWt0c+ocD4rP3Cozc+sdUMtPWuiyc6vekgwPGedxc2yf00zO2OXwcy0hFM2O1+SvMu2iVg5O1yNuMm4jV08O1mIs8a5kWJAPFeEr8S6lWZEPVSAqsG6mGtIPlN7pr66m29MQFF4obu6nnRQQlB0nbi5oHhURE9xmbW4onxYRk9ulbG3o39cSU9rka62pYNgS09pjaq0poZkTlBniaeypolnUVBlhqOwp4trVFJkgqCup45vV1NjgJyrppByW1RifZmpppF1XlZhepWmpZN4YVhheJKjpJR7ZFphdo+go5V9Z1xidYyeoZV/al9jc4qbn5WBbWFjcoeYnpWDcGRlcoWVnJWFcmZmcYOTmpSGdWlncYGQl5SHd2tpcYCOlZOHeW5rcX6Lk5GIe3Btcn2JkZCIfHJvc3yHjo6IfnVxdHyGjI2Hf3dzdXyEiouHgHh1dnyDiImGgHp3eHyChoeFgHx5eXyBhIWEgH17e32AgoOCgH59fX6AgYGBgH9/f38=';
@@ -3025,7 +3079,7 @@ function renderArmory(){$('arMed').textContent=`${rankName()} · 훈장 ${REC.me
   $('arBody').querySelectorAll('[data-gslot]').forEach(b=>b.onclick=()=>{const sl=b.dataset.gslot,own=GEAR.filter(g=>g[2]===sl&&REC.gear[g[0]]).map(g=>g[0]),list=[null,...own],cur=gearOf(sl,gSel);
     const nx=list[(list.indexOf(cur)+1)%list.length];REC.equip[gSel]=REC.equip[gSel]||{};REC.equip[gSel][sl]=nx;saveRec();SFX.play('click',{k:1});renderArmory();});
   $('arBody').querySelectorAll('[data-tt]').forEach(b=>b.onclick=()=>{REC.title=b.dataset.tt;saveRec();SFX.play('click',{k:1});syncTitleTag();renderArmory();});}
-$('coopBtn').onclick=startCoop;$('onBtn').onclick=()=>{show('online');netMsg('');if(!netConn){netSteps=null;stepsDraw();}$('onCodeShow').classList.add('hidden');loadPeer();};$('onHost').onclick=()=>{netMsg('준비 중…');stepsInit('host');stp('mod',1);loadPeer().then(ok=>{stp('mod',ok?2:3,ok?'':'모듈을 못 받음 · 인터넷 확인');netHost();});};$('onJoin').onclick=()=>{netMsg('준비 중…');stepsInit('guest');stp('mod',1);loadPeer().then(ok=>{stp('mod',ok?2:3,ok?'':'모듈을 못 받음 · 인터넷 확인');netJoin();});};$('onDiag').onclick=()=>netDiag();$('onBack').onclick=()=>{if(netRole!=='host'||!netConn)netClose();show('title');};
+$('coopBtn').onclick=startCoop;$('onBtn').onclick=()=>{show('online');netMsg('');if(!netConn){netSteps=null;stepsDraw();}$('onCodeShow').classList.add('hidden');loadPeer();};$('onHost').onclick=()=>{netMsg('준비 중…');stepsInit('host');stp('mod',1);loadPeer().then(ok=>{stp('mod',ok?2:3,ok?'':'모듈을 못 받음 · 인터넷 확인');netHost();});};$('onJoin').onclick=()=>{netMsg('준비 중…');stepsInit('guest');stp('mod',1);loadPeer().then(ok=>{stp('mod',ok?2:3,ok?'':'모듈을 못 받음 · 인터넷 확인');netJoin();});};$('onDiag').onclick=()=>netDiag();$('onLogBtn').onclick=()=>{const b=$('onLogBox');b.classList.toggle('hidden');netLogShow();};$('onLogCopy').onclick=()=>{const t=netLogText();(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>netMsg('접속 기록을 복사했어요 · 대화창에 붙여 넣어 주세요'),()=>{const r=document.createRange();r.selectNodeContents($('onLog'));const sl=getSelection();sl.removeAllRanges();sl.addRange(r);netMsg('기록을 길게 눌러 복사해 주세요');});};$('onLogClr').onclick=()=>{try{localStorage.removeItem('ccb_netlog');}catch(e){}netLogCur=null;netLogShow();};$('onBack').onclick=()=>{if(netRole!=='host'||!netConn)netClose();show('title');};
 $('netLeave').onclick=()=>{netClose();state='title';show('title');Music.play('title');syncTitleTag&&syncTitleTag();};
 let pnL='a',pnM=null,pnA=null,pnDc=null,pnDp='wing';
 function refreshCards(){document.querySelectorAll('.scard').forEach(b=>{const k=SHIPS[b.dataset.s].key,im=b.querySelectorAll('img')[1];if(!im||!SPR[k])return;const sk=REC.skin||'base';im.src=sk==='base'?(IMG_SRC[k]||''):SPR[skinKey(sk,k)].c.toDataURL();});}
